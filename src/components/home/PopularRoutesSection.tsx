@@ -164,16 +164,14 @@ export default function PopularRoutesSection() {
         });
 
         children.forEach((child, index) => {
-          const groupEl = child.querySelector('.group');
-          if (!groupEl) return;
-          
+          // The child itself is the element with the 'group' class
           if (index === closestIndex) {
-            if (groupEl.getAttribute('data-active') !== 'true') {
-              groupEl.setAttribute('data-active', 'true');
+            if (child.getAttribute('data-active') !== 'true') {
+              child.setAttribute('data-active', 'true');
             }
           } else {
-            if (groupEl.getAttribute('data-active') === 'true') {
-              groupEl.setAttribute('data-active', 'false');
+            if (child.getAttribute('data-active') === 'true') {
+              child.setAttribute('data-active', 'false');
             }
           }
         });
@@ -181,9 +179,8 @@ export default function PopularRoutesSection() {
         // Clean up on desktop
         const children = Array.from(container.children) as HTMLElement[];
         children.forEach((child) => {
-          const groupEl = child.querySelector('.group');
-          if (groupEl && groupEl.getAttribute('data-active') === 'true') {
-            groupEl.setAttribute('data-active', 'false');
+          if (child.getAttribute('data-active') === 'true') {
+            child.setAttribute('data-active', 'false');
           }
         });
       }
