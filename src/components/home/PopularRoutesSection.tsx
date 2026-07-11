@@ -146,50 +146,49 @@ export default function PopularRoutesSection() {
         }
       }
 
-      // Mobile/Tablet scroll-based animation: active center card
-      if (window.innerWidth < 1024) {
-        const containerCenter = container.getBoundingClientRect().left + container.clientWidth / 2;
-        let closestIndex = -1;
-        let minDistance = Infinity;
-
-        const children = Array.from(container.children) as HTMLElement[];
-        children.forEach((child, index) => {
-          const rect = child.getBoundingClientRect();
-          const childCenter = rect.left + rect.width / 2;
-          const distance = Math.abs(containerCenter - childCenter);
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestIndex = index;
-          }
-        });
-
-        children.forEach((child, index) => {
-          // The child itself is the element with the 'group' class
-          if (index === closestIndex) {
-            if (child.getAttribute('data-active') !== 'true') {
-              child.setAttribute('data-active', 'true');
-            }
-          } else {
-            if (child.getAttribute('data-active') === 'true') {
-              child.setAttribute('data-active', 'false');
-            }
-          }
-        });
-      } else {
-        // Clean up on desktop
-        const children = Array.from(container.children) as HTMLElement[];
-        children.forEach((child) => {
-          if (child.getAttribute('data-active') === 'true') {
-            child.setAttribute('data-active', 'false');
-          }
-        });
-      }
-
       animationId = requestAnimationFrame(scroll);
     };
 
     animationId = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(animationId);
+
+    // Mobile/Tablet Intersection Observer for smooth snap-and-rest hover effect
+    let observer: IntersectionObserver | null = null;
+    if (window.innerWidth < 1024) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const target = entry.target as HTMLElement;
+            if (entry.isIntersecting) {
+              target.setAttribute('data-active', 'true');
+            } else {
+              target.setAttribute('data-active', 'false');
+            }
+          });
+        },
+        {
+          root: container,
+          // Target the dead center of the scroll container
+          rootMargin: '0px -45% 0px -45%',
+          threshold: 0,
+        }
+      );
+
+      const children = Array.from(container.children) as HTMLElement[];
+      children.forEach((child) => observer?.observe(child));
+    } else {
+      // Clean up on desktop
+      const children = Array.from(container.children) as HTMLElement[];
+      children.forEach((child) => {
+        child.setAttribute('data-active', 'false');
+      });
+    }
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
   }, [isHovered]);
 
   const scrollLeftBtn = () => {
