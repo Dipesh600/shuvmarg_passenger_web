@@ -76,11 +76,11 @@ export default function OffersHero() {
 
         <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[160px] md:pt-[210px] px-4 md:px-18 pb-6">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0B3150] mb-4 drop-shadow-sm tracking-tight">
-            Unlock{" "}
-            <span className="text-[#FF7F3F] relative inline-block">
-              exclusive deals
+            Unlock exclusive deals with{" "}
+            <span className="text-[#FF7F3F] relative inline-block font-['Caveat',_cursive] text-4xl md:text-5xl lg:text-6xl tracking-wider">
+              ShuvMarg
               <svg
-                className="absolute -bottom-2 left-0 w-full text-[#FF7F3F]"
+                className="absolute -bottom-1 left-0 w-full text-[#FF7F3F]"
                 viewBox="0 0 100 20"
                 preserveAspectRatio="none"
                 style={{ height: "14px" }}
@@ -88,8 +88,7 @@ export default function OffersHero() {
                 <path d="M2,7 Q45,22 97,5" stroke="currentColor" strokeWidth="3.5" fill="transparent" strokeLinecap="round" />
                 <path d="M4,9 Q55,18 95,4" stroke="currentColor" strokeWidth="2" fill="transparent" strokeLinecap="round" opacity="0.7" />
               </svg>
-            </span>{" "}
-            across Nepal
+            </span>
           </h1>
           <p className="text-[#475569] text-lg md:text-xl font-medium mb-4">
             Travel more, spend less. Discover the best promotions for your next bus journey.

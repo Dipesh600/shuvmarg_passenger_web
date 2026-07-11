@@ -84,47 +84,46 @@ export default function Footer() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-4">
         {/* Tabs Section */}
-        {!isHome && (
-          <div className="w-full mb-12 md:mb-16">
-            <div className="flex overflow-x-auto no-scrollbar border-b border-white/20 mb-8 md:mb-10">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`whitespace-nowrap px-6 md:px-8 py-4 md:py-5 text-base md:text-lg font-bold transition-all border-b-[3px] ${
-                      isActive 
-                        ? "text-white border-white bg-white/10" 
-                        : "text-white/70 border-transparent hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
-              {data[activeTab].map((item, index) => {
-                let href = "/routes";
-                if (activeTab === "routes") {
-                  const slug = item.replace(/ Bus$/i, "").toLowerCase().replace(/\s+/g, "-");
-                  href = `/routes/${slug}`;
-                }
-                return (
-                  <Link 
-                    key={index}
-                    href={href} 
-                    className="text-base md:text-lg font-semibold text-white/90 hover:text-white transition-all truncate drop-shadow-sm"
-                  >
-                    {item}
-                  </Link>
-                );
-              })}
-            </div>
+        {/* Tabs Section */}
+        <div className="w-full mb-12 md:mb-16">
+          <div className="flex overflow-x-auto no-scrollbar border-b border-white/20 mb-8 md:mb-10">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`whitespace-nowrap px-6 md:px-8 py-4 md:py-5 text-base md:text-lg font-bold transition-all border-b-[3px] ${
+                    isActive 
+                      ? "text-white border-white bg-white/10" 
+                      : "text-white/70 border-transparent hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
-        )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
+            {data[activeTab].map((item, index) => {
+              let href = "/routes";
+              if (activeTab === "routes") {
+                const slug = item.replace(/ Bus$/i, "").toLowerCase().replace(/\s+/g, "-");
+                href = `/routes/${slug}`;
+              }
+              return (
+                <Link 
+                  key={index}
+                  href={href} 
+                  className="text-base md:text-lg font-semibold text-white/90 hover:text-white transition-all truncate drop-shadow-sm"
+                >
+                  {item}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Bottom Part: Links & Social */}
         <div className="pt-8 border-t border-white/20">

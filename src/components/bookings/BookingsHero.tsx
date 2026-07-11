@@ -58,7 +58,7 @@ export default function BookingsHero() {
       <div
         ref={heroRef}
         className="relative w-full overflow-hidden"
-        style={{ backgroundColor: "#eed7ba" }}
+        style={{ backgroundColor: "#EAD8BE" }}
       >
         <div
           className="absolute inset-0 opacity-15 mix-blend-multiply pointer-events-none"
@@ -72,7 +72,7 @@ export default function BookingsHero() {
         <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[160px] md:pt-[130px] px-4 md:px-18 pb-6">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0B3150] mb-4 drop-shadow-sm tracking-tight">
             Manage your{" "}
-            <span className="text-[#FF7F3F] relative inline-block">
+            <span className="text-[#FF7F3F] relative inline-block font-['Caveat',_cursive] text-4xl md:text-5xl lg:text-6xl tracking-wider">
               bookings
               <svg
                 className="absolute -bottom-2 left-0 w-full text-[#FF7F3F]"
@@ -105,7 +105,7 @@ export default function BookingsHero() {
       <div
         className="sticky top-0 z-40 relative w-full"
         style={{
-          backgroundColor: isSticky ? "rgba(238, 215, 186, 0.9)" : "#eed7ba",
+          backgroundColor: isSticky ? "rgba(234, 216, 190, 0.9)" : "#EAD8BE",
           backdropFilter: isSticky ? "blur(12px)" : "none",
           WebkitBackdropFilter: isSticky ? "blur(12px)" : "none",
           paddingTop: `${padY.toFixed(1)}px`,

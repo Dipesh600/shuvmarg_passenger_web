@@ -67,7 +67,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
       <div
         ref={heroRef}
         className="relative w-full overflow-hidden"
-        style={{ backgroundColor: "#eed7ba" }}
+        style={{ backgroundColor: "#EAD8BE" }}
       >
         {/* Texture overlay */}
         <div
@@ -121,7 +121,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
       <div
         className="sticky top-0 z-40 relative w-full"
         style={{
-          backgroundColor: isSticky ? "rgba(238, 215, 186, 0.9)" : "#eed7ba",
+          backgroundColor: isSticky ? "rgba(234, 216, 190, 0.9)" : "#EAD8BE",
           backdropFilter: isSticky ? "blur(12px)" : "none",
           WebkitBackdropFilter: isSticky ? "blur(12px)" : "none",
           paddingTop: `${padY.toFixed(1)}px`,

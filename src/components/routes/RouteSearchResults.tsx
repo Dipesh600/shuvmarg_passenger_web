@@ -31,7 +31,16 @@ export default function RouteSearchResults({ origin, destination }: RouteSearchR
 
   return (
     <>
-      <div className="w-full bg-[#EAD8BE] border-t border-[#D9B992]">
+      <div className="w-full relative bg-[#EAD8BE] border-t border-[#D9B992]">
+        {/* Texture overlay */}
+        <div
+          className="absolute inset-0 opacity-15 mix-blend-multiply pointer-events-none"
+          style={{
+            backgroundImage: "url(/images/image.png)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
         <div className="w-full max-w-[1280px] mx-auto px-4 md:px-12 py-8 relative z-20">
         {/* Mobile Filter Button */}
         <div className="lg:hidden flex justify-end mb-4">

@@ -89,7 +89,15 @@ export default function OffersPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      <main className="min-h-screen bg-[#e2e2e3] -mt-[80px] relative">
+      <main className="min-h-screen bg-[#EAD8BE] -mt-[80px] relative">
+        <div 
+          className="absolute inset-0 opacity-[0.12] mix-blend-multiply pointer-events-none"
+          style={{
+            backgroundImage: "url(/images/image.png)",
+            backgroundSize: "800px",
+            backgroundRepeat: "repeat",
+          }}
+        />
         <OffersHero />
         
         <div className="w-full pt-0 pb-16">
