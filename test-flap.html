@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.orange-grid-bg {
+  background-color: #ff7828;
+  background-image: linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+</style>
+</head>
+<body className="bg-gray-200 p-20">
+
+<div class="relative group w-[400px] h-[240px] mx-auto cursor-pointer">
+  <!-- Orange card -->
+  <div class="absolute inset-0 orange-grid-bg rounded-2xl rotate-[-2deg] shadow-lg transition-transform duration-300 group-hover:rotate-[-4deg]">
+    
+    <!-- The physical sliding tab -->
+    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 translate-y-0 group-hover:translate-y-[44px] transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-10 pt-10 pb-3 rounded-b-[20px] border-x border-b border-[#c25010] shadow-[0_8px_16px_rgba(0,0,0,0.15)] flex flex-col items-center justify-end -z-10">
+      
+      <span class="relative z-10 drop-shadow-sm">View Details</span>
+      
+      <!-- Cardboard ridge detailing -->
+      <div class="absolute inset-0 rounded-b-[20px] shadow-[inset_0_-1px_3px_rgba(255,255,255,0.3)] pointer-events-none"></div>
+      
+      <!-- Small pull tab indent -->
+      <div class="absolute bottom-1 w-6 h-1 rounded-full bg-black/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]"></div>
+
+    </div>
+
+  </div>
+  
+  <!-- White card -->
+  <div class="relative bg-white rounded-2xl h-full p-6 shadow-md z-10">
+     <h1 class="text-3xl font-bold">Main Card</h1>
+     <p>Hover me to see the tab slide out physically!</p>
+  </div>
+</div>
+
+</body>
+</html>

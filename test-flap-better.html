@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.orange-grid-bg {
+  background-color: #ff7828;
+  background-image: linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+.unified-shadow {
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15));
+}
+</style>
+</head>
+<body class="bg-gray-200 p-20 flex justify-center items-center h-screen">
+
+<!-- The wrapper that applies the unified shadow -->
+<div class="relative group w-[400px] h-[240px] cursor-pointer unified-shadow transition-transform duration-300 hover:rotate-[-2deg]">
+  
+  <!-- Orange card (no box-shadow!) -->
+  <div class="absolute inset-0 orange-grid-bg rounded-2xl rotate-[-2deg] transition-transform duration-300 z-0">
+    
+    <!-- The physical sliding tab (no box-shadow either!) -->
+    <!-- It has the exact same background, so they merge visually -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-0 group-hover:translate-y-[48px] transition-transform duration-[400ms] ease-out orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-10 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
+      <span class="relative z-10 tracking-[0.2em]">View Details</span>
+    </div>
+  </div>
+  
+  <!-- White card -->
+  <div class="relative bg-white rounded-2xl h-full p-6 z-10" style="box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+     <h1 class="text-3xl font-bold">Main Card</h1>
+     <p>Hover me!</p>
+  </div>
+</div>
+
+</body>
+</html>

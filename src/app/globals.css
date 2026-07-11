@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Neue Machina";
+  src: url("/fonts/NeueMachina-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gummy Twist";
+  src: url("/fonts/Gummy Twist.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Machina";
+  src: url("/fonts/NeueMachina-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme inline {
+  /* Brand Colors - Maroon Scale */
+  --color-maroon-50:  #FDF4F4;
+  --color-maroon-100: #F8E7E7;
+  --color-maroon-200: #F0CACA;
+  --color-maroon-300: #E2A3A3;
+  --color-maroon-400: #CD7272;
+  --color-maroon-500: #B34747;
+  --color-maroon-600: #982F2F;
+  --color-maroon-700: #7A1D1B;
+  --color-maroon-800: #641715;
+  --color-maroon-900: #48100F;
+  --color-maroon-950: #2D0908;
+
+  /* Brand Colors - Gold Scale */
+  --color-gold-50:  #FFF9EE;
+  --color-gold-100: #FFF1D4;
+  --color-gold-200: #FFE0A0;
+  --color-gold-300: #F8CA69;
+  --color-gold-400: #EAB54C;
+  --color-gold-500: #C99A4A;
+  --color-gold-600: #A57D37;
+  --color-gold-700: #84622A;
+  --color-gold-800: #644A1F;
+  --color-gold-900: #453114;
+
+  /* Brand Colors - Cream Scale */
+  --color-cream-50:  #FFFCF8;
+  --color-cream-100: #FCF7F0;
+  --color-cream-200: #F8F1E3;
+  --color-cream-300: #F4EAD8;
+  --color-cream-400: #E8DDCC;
+  --color-cream-500: #D7C8B3;
+
+  /* Neutral Scale */
+  --color-neutral-50:  #FAFAFA;
+  --color-neutral-100: #F5F5F5;
+  --color-neutral-200: #EAEAEA;
+  --color-neutral-300: #D5D5D5;
+  --color-neutral-400: #A1A1A1;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0A0A0A;
+
+  /* Semantic Colors */
+  --color-primary: var(--color-maroon-700);
+  --color-primary-hover: var(--color-maroon-800);
+  --color-surface: var(--color-cream-50);
+  --color-border: var(--color-neutral-200);
+  
+  --font-display: "Neue Machina", serif;
+  --font-sans: "Manrope", sans-serif;
+  --font-gummy: "Gummy Twist", sans-serif;
+}
+
+body {
+  background-color: var(--color-cream-50);
+  background-image: radial-gradient(circle, rgba(160, 140, 120, 0.2) 0px, transparent 3px);
+  background-size: 24px 24px;
+  background-position: center top;
+  color: var(--color-neutral-900);
+  font-family: var(--font-sans);
+}
+
+/* Utility to hide scrollbar but allow scrolling */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
