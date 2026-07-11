@@ -145,6 +145,49 @@ export default function PopularRoutesSection() {
           container.scrollLeft += setWidth;
         }
       }
+
+      // Mobile/Tablet scroll-based animation: active center card
+      if (window.innerWidth < 1024) {
+        const containerCenter = container.getBoundingClientRect().left + container.clientWidth / 2;
+        let closestIndex = -1;
+        let minDistance = Infinity;
+
+        const children = Array.from(container.children) as HTMLElement[];
+        children.forEach((child, index) => {
+          const rect = child.getBoundingClientRect();
+          const childCenter = rect.left + rect.width / 2;
+          const distance = Math.abs(containerCenter - childCenter);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = index;
+          }
+        });
+
+        children.forEach((child, index) => {
+          const groupEl = child.querySelector('.group');
+          if (!groupEl) return;
+          
+          if (index === closestIndex) {
+            if (groupEl.getAttribute('data-active') !== 'true') {
+              groupEl.setAttribute('data-active', 'true');
+            }
+          } else {
+            if (groupEl.getAttribute('data-active') === 'true') {
+              groupEl.setAttribute('data-active', 'false');
+            }
+          }
+        });
+      } else {
+        // Clean up on desktop
+        const children = Array.from(container.children) as HTMLElement[];
+        children.forEach((child) => {
+          const groupEl = child.querySelector('.group');
+          if (groupEl && groupEl.getAttribute('data-active') === 'true') {
+            groupEl.setAttribute('data-active', 'false');
+          }
+        });
+      }
+
       animationId = requestAnimationFrame(scroll);
     };
 
@@ -189,21 +232,21 @@ export default function PopularRoutesSection() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-[#0B3150] mb-3">
+        <div className="flex flex-col mb-8 md:mb-12 gap-2 md:gap-3">
+          <div className="flex flex-row items-center justify-between gap-4">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-[#0B3150]">
               Popular Routes
             </h2>
-            <p className="text-[#475569] text-base md:text-lg">
-              Travel across Nepal with our most booked journeys.
-            </p>
+            <Link href="/routes" className="flex items-center gap-2 text-[#D94328] font-semibold hover:text-[#b83820] transition-colors group shrink-0">
+              <span className="hidden md:inline whitespace-nowrap">View All Routes</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 md:w-5 md:h-5 shrink-0 group-hover:translate-x-1 transition-transform">
+                <path d="M3 12h18"/><path d="m14 5 7 7-7 7"/>
+              </svg>
+            </Link>
           </div>
-          <Link href="/routes" className="hidden md:flex items-center gap-2 text-[#D94328] font-semibold hover:text-[#b83820] transition-colors">
-            View All Routes
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-            </svg>
-          </Link>
+          <p className="text-[#475569] text-base md:text-lg max-w-2xl">
+            Travel across Nepal with our most booked journeys.
+          </p>
         </div>
       </div>
 
@@ -261,7 +304,7 @@ export default function PopularRoutesSection() {
                   />
                   
                   {/* Background Text (Default State) */}
-                  <div className="absolute inset-0 z-[5] flex items-start justify-center overflow-hidden pointer-events-none opacity-40 group-hover:opacity-0 mix-blend-overlay px-4 pt-4 md:pt-6 transition-opacity duration-500">
+                  <div className="absolute inset-0 z-[5] flex items-start justify-center overflow-hidden pointer-events-none opacity-40 group-hover:opacity-0 group-data-[active=true]:opacity-0 mix-blend-overlay px-4 pt-4 md:pt-6 transition-opacity duration-500">
                     <span 
                       style={{ fontFamily: "var(--font-gummy)" }} 
                       className="text-[36px] md:text-[48px] text-white/80 leading-none whitespace-nowrap tracking-wide select-none"
@@ -277,12 +320,12 @@ export default function PopularRoutesSection() {
                       alt={route.destination} 
                       fill 
                       sizes="(max-width: 768px) 100vw, 320px"
-                      className="object-cover scale-100 translate-y-0 group-hover:scale-95 group-hover:translate-y-6 group-hover:opacity-70 transition-all duration-500 z-10"
+                      className="object-cover scale-100 translate-y-0 group-hover:scale-95 group-data-[active=true]:scale-95 group-hover:translate-y-6 group-data-[active=true]:translate-y-6 group-hover:opacity-70 group-data-[active=true]:opacity-70 transition-all duration-500 z-10"
                     />
                   )}
 
                   {/* Foreground Text (Hover State) */}
-                  <div className="absolute inset-0 z-20 flex items-start justify-center overflow-hidden pointer-events-none opacity-0 group-hover:opacity-100 px-4 pt-4 md:pt-6 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+                  <div className="absolute inset-0 z-20 flex items-start justify-center overflow-hidden pointer-events-none opacity-0 group-hover:opacity-100 group-data-[active=true]:opacity-100 px-4 pt-4 md:pt-6 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0 group-data-[active=true]:translate-y-0">
                     <span 
                       style={{ fontFamily: "var(--font-gummy)" }} 
                       className="text-[36px] md:text-[48px] text-white drop-shadow-md leading-none whitespace-nowrap tracking-wide select-none"
@@ -303,14 +346,14 @@ export default function PopularRoutesSection() {
                   <div className="relative w-full h-full min-h-[40px] md:min-h-[50px] flex items-center justify-center">
                     
                     {/* Default State: Origin (TO) Destination */}
-                    <div className="flex items-center justify-between w-full h-full text-[#4DA6E8] font-black font-display uppercase tracking-tight absolute inset-0 pt-2 md:pt-4 transition-all duration-500 group-hover:-translate-y-8 group-hover:opacity-0">
+                    <div className="flex items-center justify-between w-full h-full text-[#4DA6E8] font-black font-display uppercase tracking-tight absolute inset-0 pt-2 md:pt-4 transition-all duration-500 group-hover:-translate-y-8 group-data-[active=true]:-translate-y-8 group-hover:opacity-0 group-data-[active=true]:opacity-0">
                       <span className="text-[28px] md:text-[32px] leading-none">{getShortName(route.origin)}</span>
                       <span className="text-[12px] md:text-[14px] text-[#D94328] leading-none mx-2 tracking-widest translate-y-[-2px]">(TO)</span>
                       <span className="text-[28px] md:text-[32px] leading-none">{getShortName(route.destination)}</span>
                     </div>
 
                     {/* Hover State: Price, Duration, Operators */}
-                    <div className="flex justify-between items-center w-full h-full text-[#0B3150] font-black uppercase tracking-wider leading-[1.2] absolute inset-0 pt-2 md:pt-4 translate-y-8 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+                    <div className="flex justify-between items-center w-full h-full text-[#0B3150] font-black uppercase tracking-wider leading-[1.2] absolute inset-0 pt-2 md:pt-4 translate-y-8 group-data-[active=true]:translate-y-0 opacity-0 group-data-[active=true]:opacity-100 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
                       <div className="flex flex-col text-left text-[11px] md:text-[12px]">
                         <span className="text-[#475569]">STARTING FROM,</span>
                         <span className="text-[16px] md:text-[18px] text-[#D94328]">NPR {route.price.toLocaleString()}</span>

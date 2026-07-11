@@ -260,7 +260,7 @@ export default function SearchCard({
           </button>
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row items-center gap-2 w-full">
+        <div className="flex flex-row items-center gap-2 w-full overflow-x-auto scrollbar-hide pb-1 md:pb-0">
           {/* From Field */}
           <div className="flex-1 w-full">
             <CityPicker
@@ -439,7 +439,7 @@ export default function SearchCard({
                 </button>
               </div>
 
-              <div className={`bg-white/60 backdrop-blur-md rounded-2xl border p-2 md:pr-6 md:pl-4 flex flex-col md:flex-row items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky ? 'scale-[0.98] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/90 border-[#D94328]/30 border-b-[#D94328]/80' : 'scale-100 shadow-sm border-[#D8BFA6]'}`}>
+              <div className={`bg-white/60 backdrop-blur-md rounded-2xl border p-2 md:pr-6 md:pl-4 flex flex-row items-center gap-2 overflow-x-auto scrollbar-hide pb-1 md:pb-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky ? 'scale-[0.98] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/90 border-[#D94328]/30 border-b-[#D94328]/80' : 'scale-100 shadow-sm border-[#D8BFA6]'}`}>
                 {/* From Field */}
                 <div className="flex-1 w-full">
                   <CityPicker

@@ -106,7 +106,7 @@ export default function OffersSection() {
       `}} />
 
       <div 
-        className="relative overflow-hidden rounded-t-[60px] rounded-b-none p-4 md:p-6 lg:p-8 border-t-[3px] border-t-[#D94328]/80"
+        className="relative overflow-hidden rounded-t-[60px] rounded-b-none px-4 pt-4 pb-12 md:px-6 md:pt-6 md:pb-16 lg:px-8 lg:pt-8 lg:pb-20 border-t-[3px] border-t-[#D94328]/80"
         style={{ 
           backgroundImage: "url('/images/offer_bg.png')",
           backgroundSize: "cover",
@@ -141,12 +141,12 @@ export default function OffersSection() {
             onClick={() => handleCopy("WEEKEND20")}
           >
             {/* Orange background layer with unified drop-shadow */}
-            <div className="absolute inset-0 rounded-2xl rotate-[-2deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[-3deg] z-0">
+            <div className="absolute inset-0 rounded-2xl rotate-[-3deg] lg:rotate-[-2deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[-3deg] z-0">
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
 
             </div>
             {/* Main white card */}
-            <div className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:-translate-x-2 group-hover:rotate-[-2deg]">
+            <div className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 -translate-x-1.5 rotate-[-2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:-translate-x-2 lg:group-hover:rotate-[-2deg] active:scale-[0.98]">
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
                <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
@@ -173,11 +173,11 @@ export default function OffersSection() {
             className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
             onClick={() => handleCopy("DELUXE10")}
           >
-            <div className="absolute inset-0 rounded-2xl rotate-[2deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[3deg] z-0">
+            <div className="absolute inset-0 rounded-2xl rotate-[3deg] lg:rotate-[2deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[3deg] z-0">
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
 
             </div>
-            <div className="relative bg-white rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:translate-x-2 group-hover:rotate-[2deg]">
+            <div className="relative bg-white rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 translate-x-1.5 rotate-[2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:translate-x-2 lg:group-hover:rotate-[2deg] active:scale-[0.98]">
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
                <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
@@ -215,11 +215,11 @@ export default function OffersSection() {
             className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
             onClick={() => handleCopy("SAVE20")}
           >
-            <div className="absolute inset-0 rounded-2xl rotate-[-1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[-2deg] z-0">
+            <div className="absolute inset-0 rounded-2xl rotate-[-2deg] lg:rotate-[-1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[-2deg] z-0">
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
 
             </div>
-            <div className="relative bg-white rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:-translate-x-2 group-hover:rotate-[-2deg]">
+            <div className="relative bg-white rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 -translate-x-1.5 rotate-[-2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:-translate-x-2 lg:group-hover:rotate-[-2deg] active:scale-[0.98]">
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
                <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
@@ -251,11 +251,11 @@ export default function OffersSection() {
             className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
             onClick={() => handleCopy("SHUVMARG50")}
           >
-            <div className="absolute inset-0 rounded-2xl rotate-[1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[2deg] z-0">
+            <div className="absolute inset-0 rounded-2xl rotate-[2deg] lg:rotate-[1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[2deg] z-0">
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
 
             </div>
-            <div className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:translate-x-2 group-hover:rotate-[2deg]">
+            <div className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 translate-x-1.5 rotate-[2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:translate-x-2 lg:group-hover:rotate-[2deg] active:scale-[0.98]">
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
                <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
@@ -279,26 +279,30 @@ export default function OffersSection() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="relative z-10 max-w-[1000px] mx-auto border border-white/30 rounded-full px-4 py-3 md:px-10 md:py-5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-8 w-full md:w-auto">
-            <div className="flex items-center gap-3 text-white text-xs md:text-sm">
-              <Tag className="w-6 h-6 text-white" />
+        <div className="relative z-10 max-w-[1000px] mx-auto border border-white/30 rounded-2xl md:rounded-[2rem] lg:rounded-full px-4 py-4 md:px-8 lg:px-10 lg:py-5 flex flex-col lg:flex-row items-center justify-between gap-5 lg:gap-4">
+          <div className="flex flex-wrap justify-center md:justify-between lg:justify-start items-center gap-y-4 gap-x-6 lg:gap-8 w-full lg:w-auto">
+            <div className="flex items-center gap-3 text-white text-xs lg:text-sm">
+              <Tag className="w-5 h-5 lg:w-6 lg:h-6 text-white shrink-0" />
               <div className="flex flex-col text-left">
                 <span className="font-bold leading-tight">Great deals</span>
                 <span className="text-white/80 leading-tight">on every journey</span>
               </div>
             </div>
+            
             <div className="hidden md:block w-px h-10 border-l border-dashed border-white/40" />
-            <div className="flex items-center gap-3 text-white text-xs md:text-sm">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            
+            <div className="flex items-center gap-3 text-white text-xs lg:text-sm">
+              <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6 text-white shrink-0" />
               <div className="flex flex-col text-left">
                 <span className="font-bold leading-tight">Safe & Secure</span>
                 <span className="text-white/80 leading-tight">bookings</span>
               </div>
             </div>
-            <div className="hidden lg:block w-px h-10 border-l border-dashed border-white/40" />
-            <div className="hidden lg:flex items-center gap-3 text-white text-xs md:text-sm">
-              <Clock className="w-6 h-6 text-white" />
+            
+            <div className="hidden md:block w-px h-10 border-l border-dashed border-white/40" />
+            
+            <div className="flex items-center gap-3 text-white text-xs lg:text-sm">
+              <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-white shrink-0" />
               <div className="flex flex-col text-left">
                 <span className="font-bold leading-tight">Easy Cancellations</span>
                 <span className="text-white/80 leading-tight">quick refunds*</span>
@@ -306,9 +310,11 @@ export default function OffersSection() {
             </div>
           </div>
           
-          <div className="hidden md:block w-px h-10 border-l border-dashed border-white/40 ml-auto mr-6" />
+          <div className="w-full lg:hidden h-px border-t border-dashed border-white/30" />
+          
+          <div className="hidden lg:block w-px h-10 border-l border-dashed border-white/40 ml-auto mr-6" />
 
-          <Link href="/offers" className="flex items-center gap-3 group text-[#ff7828] font-bold text-sm md:text-base whitespace-nowrap transition-colors">
+          <Link href="/offers" className="flex items-center justify-center lg:justify-start gap-3 group text-[#ff7828] font-bold text-sm lg:text-base whitespace-nowrap transition-colors w-full lg:w-auto">
             View all offers
             <div className="w-8 h-8 rounded-full bg-white text-[#015db8] flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
               <ArrowRight className="w-4 h-4" />

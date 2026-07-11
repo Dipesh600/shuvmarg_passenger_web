@@ -179,16 +179,16 @@ export default function OffersPage() {
             {/* Card 1: Weekend Getaway */}
             {showShuvMarg && (
             <div 
-              className="relative group w-full h-[220px] md:h-[240px] hover:z-50 cursor-pointer"
+              className="relative group w-full h-[220px] md:h-[240px] hover:z-50 cursor-pointer mb-12 lg:mb-0"
             >
               {/* Orange background layer with unified drop-shadow */}
               <div 
-                className="absolute inset-0 rounded-2xl rotate-[-2deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[-3deg] z-0"
+                className="absolute inset-0 rounded-2xl rotate-[-3deg] lg:rotate-[-2deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[-3deg] z-0"
                 onClick={() => setSelectedOffer('WEEKEND20')}
               >
                 <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
                 {/* Wide physical sliding tab */}
-                <div className="absolute bottom-4 w-2/3 left-1/2 -translate-x-1/2 translate-y-0 group-hover:translate-y-[48px] transition-transform duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-4 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
+                <div className="absolute bottom-4 w-2/3 left-1/2 -translate-x-1/2 translate-y-[48px] lg:translate-y-0 lg:group-hover:translate-y-[48px] transition-transform duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-4 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
                   <div className="absolute top-[20px] left-4 right-4 h-px border-t border-dashed border-white/40"></div>
                   <span className="relative z-10 flex items-center gap-2 drop-shadow-sm font-black">
                     View Details
@@ -199,7 +199,7 @@ export default function OffersPage() {
                 </div>
               </div>
               <div 
-                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:-translate-x-2 group-hover:rotate-[-2deg]"
+                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 -translate-x-1.5 rotate-[-2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:-translate-x-2 lg:group-hover:rotate-[-2deg] active:scale-[0.98]"
                 onClick={() => handleCopy('WEEKEND20')}
               >
                  <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
@@ -231,12 +231,12 @@ export default function OffersPage() {
             >
 
               <div 
-                className="absolute inset-0 rounded-2xl rotate-[2deg] scale-[1.02] drop-shadow-xl z-0"
+                className="absolute inset-0 rounded-2xl rotate-[3deg] lg:rotate-[2deg] scale-[1.02] drop-shadow-xl z-0"
               >
                 <div className="absolute inset-0 bg-gray-500 rounded-2xl"></div>
               </div>
               <div 
-                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden"
+                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 translate-x-1.5 rotate-[2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0"
               >
                  <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                  <div className="absolute top-0 bottom-0 right-[40%] md:right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
@@ -273,14 +273,14 @@ export default function OffersPage() {
             {/* Card 3: 20% OFF */}
             {showShuvMarg && (
             <div 
-              className="relative group w-full h-[220px] md:h-[240px] hover:z-50 cursor-pointer"
+              className="relative group w-full h-[220px] md:h-[240px] hover:z-50 cursor-pointer mb-12 lg:mb-0"
             >
               <div 
-                className="absolute inset-0 rounded-2xl rotate-[-1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[-2deg] z-0"
+                className="absolute inset-0 rounded-2xl rotate-[-2deg] lg:rotate-[-1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[-2deg] z-0"
                 onClick={() => setSelectedOffer('SAVE20')}
               >
                 <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-                <div className="absolute bottom-4 w-2/3 left-1/2 -translate-x-1/2 translate-y-0 group-hover:translate-y-[48px] transition-transform duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-4 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
+                <div className="absolute bottom-4 w-2/3 left-1/2 -translate-x-1/2 translate-y-[48px] lg:translate-y-0 lg:group-hover:translate-y-[48px] transition-transform duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-4 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
                   <div className="absolute top-[20px] left-4 right-4 h-px border-t border-dashed border-white/40"></div>
                   <span className="relative z-10 flex items-center gap-2 drop-shadow-sm font-black">
                     View Details
@@ -291,7 +291,7 @@ export default function OffersPage() {
                 </div>
               </div>
               <div 
-                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:-translate-x-2 group-hover:rotate-[-2deg]"
+                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 -translate-x-1.5 rotate-[-2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:-translate-x-2 lg:group-hover:rotate-[-2deg] active:scale-[0.98]"
                 onClick={() => handleCopy('SAVE20')}
               >
                  <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
@@ -324,14 +324,14 @@ export default function OffersPage() {
             {/* Card 4: New User Bonus */}
             {showShuvMarg && (
             <div 
-              className="relative group w-full h-[220px] md:h-[240px] hover:z-50 cursor-pointer"
+              className="relative group w-full h-[220px] md:h-[240px] hover:z-50 cursor-pointer mb-12 lg:mb-0"
             >
               <div 
-                className="absolute inset-0 rounded-2xl rotate-[1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 group-hover:rotate-[2deg] z-0"
+                className="absolute inset-0 rounded-2xl rotate-[2deg] lg:rotate-[1deg] scale-[1.02] drop-shadow-xl transition-transform duration-300 lg:group-hover:rotate-[2deg] z-0"
                 onClick={() => setSelectedOffer('SHUVMARG50')}
               >
                 <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-                <div className="absolute bottom-4 w-2/3 left-1/2 -translate-x-1/2 translate-y-0 group-hover:translate-y-[48px] transition-transform duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-4 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
+                <div className="absolute bottom-4 w-2/3 left-1/2 -translate-x-1/2 translate-y-[48px] lg:translate-y-0 lg:group-hover:translate-y-[48px] transition-transform duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] orange-grid-bg text-white text-[11px] font-bold uppercase tracking-widest px-4 pt-10 pb-4 rounded-b-2xl flex flex-col items-center justify-end -z-10">
                   <div className="absolute top-[20px] left-4 right-4 h-px border-t border-dashed border-white/40"></div>
                   <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
                     View Details
@@ -342,7 +342,7 @@ export default function OffersPage() {
                 </div>
               </div>
               <div 
-                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 group-hover:-translate-y-2 group-hover:translate-x-2 group-hover:rotate-[2deg]"
+                className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-all duration-300 -translate-y-1.5 translate-x-1.5 rotate-[2deg] lg:translate-y-0 lg:translate-x-0 lg:rotate-0 lg:group-hover:-translate-y-2 lg:group-hover:translate-x-2 lg:group-hover:rotate-[2deg] active:scale-[0.98]"
                 onClick={() => handleCopy('SHUVMARG50')}
               >
                  <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
