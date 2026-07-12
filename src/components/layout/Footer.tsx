@@ -32,8 +32,7 @@ const data = {
   ],
   quickLinks: [
     "About Us", "Contact Us", "Privacy Policy", "Terms & Conditions",
-    "Operator Login", "Agent Login", "Refund Policy", "FAQ",
-    "Bus Ticket Booking Online", "Offers & Promos"
+    "Operator Login", "Agent Login", "Refund Policy", "Offers & Promos"
   ]
 };
 
@@ -140,6 +139,18 @@ export default function Footer() {
                       href = `/cities/${item.toLowerCase().replace(/\s+/g, "-")}`;
                     } else if (tab.key === "operators") {
                       href = `/operators/${item.toLowerCase().replace(/\s+/g, "-")}`;
+                    } else if (tab.key === "quickLinks") {
+                      const linkMap: Record<string, string> = {
+                        "About Us": "/about",
+                        "Contact Us": "/help",
+                        "Privacy Policy": "/privacy-policy",
+                        "Terms & Conditions": "/terms-and-conditions",
+                        "Operator Login": "/operator-login",
+                        "Agent Login": "/agent-login",
+                        "Refund Policy": "/refund-policy",
+                        "Offers & Promos": "/offers"
+                      };
+                      href = linkMap[item] || `/${item.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
                     } else {
                       href = `/${item.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
                     }
@@ -198,6 +209,18 @@ export default function Footer() {
                 href = `/cities/${item.toLowerCase().replace(/\s+/g, "-")}`;
               } else if (activeTab === "operators") {
                 href = `/operators/${item.toLowerCase().replace(/\s+/g, "-")}`;
+              } else if (activeTab === "quickLinks") {
+                const linkMap: Record<string, string> = {
+                  "About Us": "/about",
+                  "Contact Us": "/help",
+                  "Privacy Policy": "/privacy-policy",
+                  "Terms & Conditions": "/terms-and-conditions",
+                  "Operator Login": "/operator-login",
+                  "Agent Login": "/agent-login",
+                  "Refund Policy": "/refund-policy",
+                  "Offers & Promos": "/offers"
+                };
+                href = linkMap[item] || `/${item.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
               } else {
                 href = `/${item.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
               }

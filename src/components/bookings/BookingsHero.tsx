@@ -69,7 +69,7 @@ export default function BookingsHero() {
           }}
         />
 
-        <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[160px] md:pt-[130px] px-4 md:px-12 pb-6">
+        <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[100px] md:pt-[110px] px-4 md:px-12 pb-6">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0B3150] mb-4 drop-shadow-sm tracking-tight">
             Manage your{" "}
             <span className="text-[#FF7F3F] relative inline-block font-['Caveat',_cursive] text-4xl md:text-5xl lg:text-6xl tracking-wider">
@@ -129,7 +129,7 @@ export default function BookingsHero() {
           } as React.CSSProperties}
         >
           <div
-            className={`transition-all duration-300 mt-2 md:mt-0 flex shrink-0 ${isSticky ? "w-12 opacity-100" : "w-0 opacity-0 overflow-hidden"
+            className={`transition-all duration-300 mt-2 md:mt-0 hidden md:flex shrink-0 ${isSticky ? "w-12 opacity-100" : "w-0 opacity-0 overflow-hidden"
               }`}
           >
             <button

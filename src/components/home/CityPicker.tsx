@@ -65,6 +65,8 @@ interface CityPickerProps {
   value: string;            // The selected city name (or "")
   onChange: (city: string) => void;
   excludeCity?: string;     // Prevent same-city selection
+  shortCodeOnMobile?: boolean; // Show short code instead of full name on mobile
+  dropdownAlign?: "left" | "right"; // Alignment of dropdown on mobile
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -74,6 +76,8 @@ export function CityPicker({
   value,
   onChange,
   excludeCity,
+  shortCodeOnMobile = false,
+  dropdownAlign = "left",
 }: CityPickerProps) {
   const [query, setQuery]       = useState("");
   const [isOpen, setIsOpen]     = useState(false);
@@ -93,6 +97,27 @@ export function CityPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const [useShortCode, setUseShortCode] = useState(false);
+  useEffect(() => {
+    if (!shortCodeOnMobile) return;
+    
+    // Fallback if ResizeObserver is not available or before it triggers
+    setUseShortCode(window.innerWidth < 768);
+    
+    if (!containerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        // If container width is larger than 140px, we have enough space for the full name
+        // (Kathmandu is the longest, ~110px. Add padding.)
+        setUseShortCode(entry.contentRect.width < 140);
+      }
+    });
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [shortCodeOnMobile]);
+
   // Filter logic: popular when pristine (empty or same as value), search when typing new text
   const isPristine = query === value || query.trim().length === 0;
   
@@ -108,7 +133,13 @@ export function CityPicker({
   const showNoResults    = !isPristine && displayList.length === 0;
 
   // What the input shows: when open → editable query; when closed → selected value
-  const inputValue = isOpen ? query : value;
+  let inputValue = isOpen ? query : value;
+  if (!isOpen && useShortCode && value) {
+    const city = CITY_REGISTRY.find(c => c.name === value);
+    if (city) {
+      inputValue = city.code;
+    }
+  }
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setQuery(value);
@@ -195,7 +226,7 @@ export function CityPicker({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-[110%] left-0 z-[200] w-full min-w-[300px] md:w-[300px] bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden"
+            className={`absolute top-[110%] ${dropdownAlign === "right" ? "right-0 md:left-0 md:right-auto" : "left-0"} z-[200] w-[calc(100vw-32px)] max-w-[320px] md:w-[300px] md:max-w-none bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden`}
           >
             {showPopularLabel && (
               <div className="px-4 pt-3 pb-1.5">

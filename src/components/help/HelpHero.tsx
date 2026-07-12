@@ -127,7 +127,7 @@ export default function HelpHero() {
           }}
         >
           <div
-            className={`transition-all duration-300 mt-2 md:mt-0 flex shrink-0 ${isSticky ? "w-12 opacity-100" : "w-0 opacity-0 overflow-hidden"
+            className={`transition-all duration-300 mt-2 md:mt-0 hidden md:flex shrink-0 ${isSticky ? "w-12 opacity-100" : "w-0 opacity-0 overflow-hidden"
               }`}
           >
             <button

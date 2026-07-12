@@ -222,94 +222,103 @@ export default function SearchCard({
           </button>
         </div>
       ) : (
-        <div className="flex flex-row items-center gap-2 w-full pb-1 md:pb-0 relative z-20">
-          {/* From Field */}
-          <div className="flex-1 w-full relative z-[50]">
-            <CityPicker
-              label="From"
-              placeholder="Origin city"
-              value={from}
-              onChange={setFrom}
-              excludeCity={to}
-            />
-          </div>
+        <div className="flex flex-col md:flex-row items-center gap-2 md:gap-2 w-full pb-1 md:pb-0 relative z-20">
+          
+          {/* ── ROW 1 (Mobile) / Left Side (Desktop) ── */}
+          <div className="flex flex-row items-center justify-between w-full md:w-auto md:flex-none shrink-0 relative z-50">
+            {/* From Field */}
+            <div className="flex-1 min-w-0 md:flex-none md:w-[140px] lg:w-[160px] relative z-[50]">
+              <CityPicker
+                label="From"
+                placeholder="Origin city"
+                value={from}
+                onChange={setFrom}
+                excludeCity={to}
+                shortCodeOnMobile={true}
+              />
+            </div>
 
-          {/* Swap Button */}
-          <div className="w-full md:w-auto h-[1px] md:h-auto bg-[#D8BFA6] md:bg-transparent my-1 md:my-0 flex items-center justify-end md:justify-center pr-4 md:pr-0">
-            <button
-              onClick={handleSwap}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E8D2B0] text-[#7A4A1E] hover:bg-[#DBBD95] transition-colors shadow-sm"
-            >
-              <span style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300 md:rotate-0 rotate-90">
-                <SwapIcon />
-              </span>
-            </button>
-          </div>
+            {/* Swap Button */}
+            <div className="flex-shrink-0 mx-0 md:mx-1 flex items-center justify-center">
+              <button
+                onClick={handleSwap}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E8D2B0] text-[#7A4A1E] hover:bg-[#DBBD95] transition-colors shadow-sm"
+              >
+                <span style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300">
+                  <SwapIcon />
+                </span>
+              </button>
+            </div>
 
-          {/* To Field */}
-          <div className="flex-1 w-full relative z-[50]">
-            <CityPicker
-              label="To"
-              placeholder="Destination city"
-              value={to}
-              onChange={setTo}
-              excludeCity={from}
-            />
+            {/* To Field */}
+            <div className="flex-1 min-w-0 md:flex-none md:w-[140px] lg:w-[160px] relative z-[50]">
+              <CityPicker
+                label="To"
+                placeholder="Destination city"
+                value={to}
+                onChange={setTo}
+                excludeCity={from}
+                shortCodeOnMobile={true}
+                dropdownAlign="right"
+              />
+            </div>
           </div>
 
           {/* Divider */}
           <div className="hidden md:block w-[1px] h-8 bg-[#D8BFA6] mx-1"></div>
-          <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-1"></div>
 
-          {/* Date Field with Scroller */}
-          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-[30]'}`}>
-            {/* Calendar Icon (Opens Picker) */}
-            <div className="shrink-0 mr-1">
-              <CustomDatePicker
-                selectedDate={date}
-                onChange={(d) => setDate(d)}
-                isOpen={isDatePickerOpen}
-                onClose={() => setIsDatePickerOpen(false)}
-                onOpen={() => setIsDatePickerOpen(true)}
-              >
-                <button className="h-[48px] w-10 flex items-center justify-center rounded-xl text-[#0B3150] hover:text-[#D94328] hover:bg-[#E8D2B0]/50 transition-colors">
-                  <CalendarIcon className="w-[22px] h-[22px] shrink-0" />
-                </button>
-              </CustomDatePicker>
-            </div>
-
-            {/* Scroller */}
-            <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-1.5 items-center min-w-0 h-[56px]">
-              {next7Days.map((d, i) => {
-                const isSelected = isSameDay(d, date);
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setDate(d)}
-                    className={`
-                      shrink-0 w-[44px] h-[50px] rounded-lg flex flex-col items-center justify-center transition-all border
-                      ${isSelected 
-                        ? "bg-[#D94328] border-[#D94328] text-white shadow-sm transform scale-[1.02]" 
-                        : "bg-white/50 border-[#D8BFA6]/40 text-[#0B3150] hover:bg-[#E8D2B0]/40"}
-                    `}
-                  >
-                    <span className={`text-[9px] font-bold uppercase tracking-wide ${isSelected ? "text-white/90" : "text-[#5D4B3B]"}`}>{format(d, "EEE")}</span>
-                    <span className="text-[16px] font-bold font-display leading-tight">{format(d, "d")}</span>
-                    <span className={`text-[9px] font-bold uppercase ${isSelected ? "text-white/90" : "text-[#7A4A1E]"}`}>{format(d, "MMM")}</span>
+          {/* ── ROW 2 (Mobile) / Right Side (Desktop) ── */}
+          <div className="flex flex-row items-center justify-between w-full md:w-auto md:flex-1 min-w-0 relative z-40 mt-1 md:mt-0">
+            {/* Date Field with Scroller */}
+            <div className={`flex-1 w-full flex items-center justify-start px-0 md:px-2 py-1 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-[30]'}`}>
+              {/* Calendar Icon (Opens Picker) */}
+              <div className="shrink-0 mr-1">
+                <CustomDatePicker
+                  selectedDate={date}
+                  onChange={(d) => setDate(d)}
+                  isOpen={isDatePickerOpen}
+                  onClose={() => setIsDatePickerOpen(false)}
+                  onOpen={() => setIsDatePickerOpen(true)}
+                >
+                  <button className="h-[48px] w-10 flex items-center justify-center rounded-xl text-[#0B3150] hover:text-[#D94328] hover:bg-[#E8D2B0]/50 transition-colors">
+                    <CalendarIcon className="w-[22px] h-[22px] shrink-0" />
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                </CustomDatePicker>
+              </div>
 
-          {/* Search Button */}
-          <button 
-            onClick={handleSearchClick}
-            className="h-[44px] px-8 bg-[#D94328] text-white rounded-xl text-[15px] font-bold hover:bg-[#C93522] transition-colors shadow-[0_2px_8px_rgba(217,67,40,0.3)] shrink-0 w-full md:w-auto mt-2 md:mt-0 md:ml-2 flex items-center justify-center"
-          >
-            <span className="hidden md:inline">Search</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:hidden"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          </button>
+              {/* Scroller */}
+              <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-1.5 items-center min-w-0 h-[56px]">
+                {next7Days.map((d, i) => {
+                  const isSelected = isSameDay(d, date);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setDate(d)}
+                      className={`
+                        shrink-0 w-[44px] h-[50px] rounded-lg flex flex-col items-center justify-center transition-all border
+                        ${isSelected 
+                          ? "bg-[#D94328] border-[#D94328] text-white shadow-sm transform scale-[1.02]" 
+                          : "bg-white/50 border-[#D8BFA6]/40 text-[#0B3150] hover:bg-[#E8D2B0]/40"}
+                      `}
+                    >
+                      <span className={`text-[9px] font-bold uppercase tracking-wide ${isSelected ? "text-white/90" : "text-[#5D4B3B]"}`}>{format(d, "EEE")}</span>
+                      <span className="text-[16px] font-bold font-display leading-tight">{format(d, "d")}</span>
+                      <span className={`text-[9px] font-bold uppercase ${isSelected ? "text-white/90" : "text-[#7A4A1E]"}`}>{format(d, "MMM")}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <button 
+              onClick={handleSearchClick}
+              className="h-[44px] w-[72px] md:w-auto px-0 md:px-6 lg:px-8 bg-[#D94328] text-white rounded-xl text-[15px] font-bold hover:bg-[#C93522] transition-colors shadow-[0_2px_8px_rgba(217,67,40,0.3)] shrink-0 ml-2 flex items-center justify-center"
+            >
+              <span className="hidden lg:inline">Search</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 lg:hidden"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+          </div>
         </div>
       )}
     </>
