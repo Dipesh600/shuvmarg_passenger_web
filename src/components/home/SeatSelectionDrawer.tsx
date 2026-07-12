@@ -228,7 +228,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       
       {/* Drawer */}
       <div 
-        className={`fixed bottom-0 left-0 w-full h-[95dvh] md:h-[90vh] bg-[#EED9BD] shadow-2xl z-[101] flex flex-col rounded-t-3xl md:rounded-t-3xl overflow-hidden md:border-x md:border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform overscroll-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 left-0 w-full h-[100dvh] lg:h-[90vh] bg-[#EED9BD] shadow-2xl z-[101] flex flex-col rounded-none lg:rounded-t-3xl overflow-hidden md:border-x md:border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 lg:border-t-[3px] transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform overscroll-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Extra div to cover bottom overscroll on iOS */}
         <div className="absolute top-[100%] left-0 w-full h-[50vh] bg-[#EED9BD]" />

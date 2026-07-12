@@ -155,10 +155,15 @@ export function CityPicker({
   const showPopularLabel = !isFiltering;
   const showNoResults    = isFiltering && displayList.length === 0;
 
-  const handleFocus = () => {
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     // Show current value text in the field so user can see/edit it
     setInputText(value);
     setIsOpen(true);
+    // Auto-select text so they can easily delete or type over it
+    const target = e.target;
+    setTimeout(() => {
+      target.select();
+    }, 10);
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,7 +225,7 @@ export function CityPicker({
             onChange={handleInput}
             onFocus={handleFocus}
             autoComplete="off"
-            className="flex-1 min-w-0 bg-transparent text-[15px] font-bold text-[#0B3150] outline-none placeholder:text-[#0B3150]/40 placeholder:font-medium selection:bg-[#d96b63]/30 selection:text-[#0B3150]"
+            className="flex-1 min-w-0 bg-transparent text-[15px] font-bold text-[#0B3150] outline-none placeholder:text-[#0B3150]/40 placeholder:font-medium"
           />
         </div>
 

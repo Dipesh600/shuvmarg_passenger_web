@@ -11,7 +11,7 @@ export default function Home() {
       <div className="relative">
         <HeroSection />
       </div>
-      <div className="w-full relative z-20 -mt-32 md:-mt-56">
+      <div className="w-full relative z-20 -mt-24 sm:-mt-32 md:-mt-40 lg:-mt-32">
         <OffersSection />
       </div>
       <PopularRoutesSection />

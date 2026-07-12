@@ -37,8 +37,8 @@ interface SearchCardProps {
 
 export default function SearchCard({ 
   variant = "default", 
-  initialFrom = "Kathmandu",
-  initialTo = "Pokhara",
+  initialFrom = "",
+  initialTo = "",
   initialDate,
 }: SearchCardProps) {
   const [from, setFrom] = useState(initialFrom);
@@ -52,13 +52,16 @@ export default function SearchCard({
   
   // Navigation
   const handleSearchClick = () => {
-    addSearch({
-      from,
-      to,
-      date: format(date, "EEE dd MMM yyyy"),
-    });
     if (from && to && !sameError) {
       router.push(`/routes/${from.toLowerCase()}-to-${to.toLowerCase()}`);
+      // Delay saving the search so the UI doesn't update until we navigate away
+      setTimeout(() => {
+        addSearch({
+          from,
+          to,
+          date: format(date, "EEE dd MMM yyyy"),
+        });
+      }, 1000); // 1s delay is enough to allow route transition to start
     }
   };
 
@@ -68,6 +71,48 @@ export default function SearchCard({
 
   const [isSticky, setIsSticky] = useState(false);
   const stickySentinelRef = useRef<HTMLDivElement>(null);
+
+  // Typewriter effect for "From" placeholder
+  const typewriterCities = ["Kathmandu", "Pokhara", "Chitwan", "Lumbini", "Biratnagar"];
+  const [originPlaceholder, setOriginPlaceholder] = useState("");
+
+  useEffect(() => {
+    let currentIdx = 0;
+    let currentText = "";
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const tick = () => {
+      // If user has selected a 'from' city, no need to keep updating placeholder
+      // We could pause it, but for simplicity we'll just keep it running or we can pause it.
+      
+      const fullText = typewriterCities[currentIdx];
+
+      if (isDeleting) {
+        currentText = fullText.substring(0, currentText.length - 1);
+      } else {
+        currentText = fullText.substring(0, currentText.length + 1);
+      }
+
+      setOriginPlaceholder(currentText);
+
+      let typeSpeed = isDeleting ? 40 : 100;
+
+      if (!isDeleting && currentText === fullText) {
+        typeSpeed = 2000;
+        isDeleting = true;
+      } else if (isDeleting && currentText === "") {
+        isDeleting = false;
+        currentIdx = (currentIdx + 1) % typewriterCities.length;
+        typeSpeed = 400;
+      }
+
+      timeoutId = setTimeout(tick, typeSpeed);
+    };
+
+    timeoutId = setTimeout(tick, 500);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     const sentinel = stickySentinelRef.current;
@@ -131,7 +176,7 @@ export default function SearchCard({
           <div className="flex-1 w-full min-w-0 relative z-[60]">
             <CityPicker
               label="From"
-              placeholder="Origin city"
+              placeholder={originPlaceholder || "Origin city"}
               value={from}
               onChange={setFrom}
               excludeCity={to}
@@ -230,7 +275,7 @@ export default function SearchCard({
             <div className="flex-1 min-w-0 md:flex-none md:w-[140px] lg:w-[160px] relative z-[50]">
               <CityPicker
                 label="From"
-                placeholder="Origin city"
+                placeholder={originPlaceholder || "Origin city"}
                 value={from}
                 onChange={setFrom}
                 excludeCity={to}
