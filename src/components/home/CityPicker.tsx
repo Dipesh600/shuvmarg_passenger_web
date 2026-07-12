@@ -141,10 +141,10 @@ export function CityPicker({
     if (city) displayText = city.code;
   }
 
-  // Dropdown list: show popular when empty, or filter by query
+  // Dropdown list: filter by whatever is typed, or show popular when empty
   const query = inputText.trim();
-  const isSearching = isOpen && query.length > 0 && inputText !== value;
-  const displayList: City[] = isSearching
+  const isFiltering = isOpen && query.length > 0;
+  const displayList: City[] = isFiltering
     ? CITY_REGISTRY.filter(
         (c) =>
           c.name.toLowerCase().includes(query.toLowerCase()) &&
@@ -152,8 +152,8 @@ export function CityPicker({
       )
     : POPULAR_CITIES.filter((c) => c.name !== excludeCity);
 
-  const showPopularLabel = !isSearching;
-  const showNoResults    = isSearching && displayList.length === 0;
+  const showPopularLabel = !isFiltering;
+  const showNoResults    = isFiltering && displayList.length === 0;
 
   const handleFocus = () => {
     // Show current value text in the field so user can see/edit it
@@ -165,11 +165,10 @@ export function CityPicker({
     const val = e.target.value;
     setInputText(val);
     setSameError(false);
-
-    // As soon as the user modifies the text, decommit the selection
-    if (val !== value) {
-      onChange("");
-    }
+    // Open dropdown immediately while typing
+    if (!isOpen) setIsOpen(true);
+    // Decommit selection as soon as text changes
+    onChange("");
   };
 
   const handleSelect = (city: City) => {
