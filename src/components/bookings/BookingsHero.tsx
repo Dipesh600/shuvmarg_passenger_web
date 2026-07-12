@@ -57,7 +57,7 @@ export default function BookingsHero() {
     <>
       <div
         ref={heroRef}
-        className="relative w-full overflow-hidden"
+        className="relative w-full"
         style={{ backgroundColor: "#EAD8BE" }}
       >
         <div
@@ -158,7 +158,7 @@ export default function BookingsHero() {
               : "scale-100 shadow-sm border-[#D8BFA6]"
               }`}
           >
-            <SearchCard variant="compact" hideDrawer={true} />
+            <SearchCard variant="compact" />
           </div>
         </div>
       </div>

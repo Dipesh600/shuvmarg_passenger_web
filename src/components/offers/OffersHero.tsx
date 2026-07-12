@@ -61,7 +61,7 @@ export default function OffersHero() {
       {/* ── SCROLLS AWAY: background + headline ── */}
       <div
         ref={heroRef}
-        className="relative w-full overflow-hidden"
+        className="relative w-full"
         style={{ backgroundColor: "#eed7ba" }}
       >
         {/* Texture overlay */}
@@ -169,7 +169,7 @@ export default function OffersHero() {
               : "scale-100 shadow-sm border-[#D8BFA6]"
               }`}
           >
-            <SearchCard variant="compact" hideDrawer={true} />
+            <SearchCard variant="compact" />
           </div>
         </div>
       </div>

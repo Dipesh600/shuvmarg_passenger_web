@@ -8,7 +8,9 @@ import AboutSection from "@/components/home/AboutSection";
 export default function Home() {
   return (
     <>
-      <HeroSection />
+      <div className="relative">
+        <HeroSection />
+      </div>
       <div className="w-full relative z-20 -mt-32 md:-mt-56">
         <OffersSection />
       </div>

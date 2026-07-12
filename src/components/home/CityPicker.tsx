@@ -93,8 +93,10 @@ export function CityPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Filter logic: popular when no query, search when typing
-  const displayList: City[] = query.trim().length >= 1
+  // Filter logic: popular when pristine (empty or same as value), search when typing new text
+  const isPristine = query === value || query.trim().length === 0;
+  
+  const displayList: City[] = !isPristine
     ? CITY_REGISTRY.filter(
         (c) =>
           c.name.toLowerCase().includes(query.toLowerCase()) &&
@@ -102,15 +104,19 @@ export function CityPicker({
       )
     : POPULAR_CITIES.filter((c) => c.name !== excludeCity);
 
-  const showPopularLabel = query.trim().length < 1;
-  const showNoResults    = query.trim().length >= 1 && displayList.length === 0;
+  const showPopularLabel = isPristine;
+  const showNoResults    = !isPristine && displayList.length === 0;
 
   // What the input shows: when open → editable query; when closed → selected value
   const inputValue = isOpen ? query : value;
 
-  const handleFocus = () => {
-    if (value) setQuery(""); // Clear to start a fresh search
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setQuery(value);
     setIsOpen(true);
+    // Select the text so typing immediately overwrites it
+    setTimeout(() => {
+      e.target.select();
+    }, 10);
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,15 +135,6 @@ export function CityPicker({
     setSameError(false);
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange("");
-    setQuery("");
-    setIsOpen(true);
-    setSameError(false);
-    setTimeout(() => inputRef.current?.focus(), 50);
-  };
-
   return (
     <div ref={containerRef} className="relative w-full h-full">
       {/* ── Input Field ── */}
@@ -145,7 +142,7 @@ export function CityPicker({
         className="flex flex-col justify-center px-4 py-2 h-full cursor-text w-full"
         onClick={() => inputRef.current?.focus()}
       >
-        <span className="text-[11px] text-[#5D4B3B] font-bold mb-1 tracking-wider uppercase pointer-events-none">
+        <span className="text-[11px] text-[#5D4B3B] font-bold mb-1 tracking-wider uppercase pointer-events-none text-left w-full block">
           {label}
         </span>
 
@@ -173,21 +170,8 @@ export function CityPicker({
             onChange={handleInput}
             onFocus={handleFocus}
             autoComplete="off"
-            className="flex-1 min-w-0 bg-transparent text-[15px] font-bold text-[#0B3150] outline-none placeholder:text-[#0B3150]/40 placeholder:font-medium"
+            className="flex-1 min-w-0 bg-transparent text-[15px] font-bold text-[#0B3150] outline-none placeholder:text-[#0B3150]/40 placeholder:font-medium selection:bg-[#d96b63]/30 selection:text-[#0B3150]"
           />
-
-          {/* Clear button — only when a value is selected and picker is closed */}
-          {value && !isOpen && (
-            <button
-              onClick={handleClear}
-              className="flex-shrink-0 text-[#0B3150]/30 hover:text-[#D94328] transition-colors"
-              tabIndex={-1}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-              </svg>
-            </button>
-          )}
         </div>
 
         {/* Validation messages */}
@@ -197,13 +181,13 @@ export function CityPicker({
           </p>
         )}
         {isOpen && query.length >= 1 && !sameError && (
-          <p className="text-[11px] font-semibold text-amber-600 mt-1 hidden md:block">
+          <p className="text-[11px] font-semibold text-amber-600 mt-1">
             Select a city from the list below.
           </p>
         )}
       </div>
 
-      {/* ── Desktop Dropdown ── */}
+      {/* ── Dropdown List ── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -211,7 +195,7 @@ export function CityPicker({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.15 }}
-            className="hidden md:block absolute top-[110%] left-0 z-[200] w-[300px] bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden"
+            className="absolute top-[110%] left-0 z-[200] w-full min-w-[300px] md:w-[300px] bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden"
           >
             {showPopularLabel && (
               <div className="px-4 pt-3 pb-1.5">
@@ -256,106 +240,7 @@ export function CityPicker({
         )}
       </AnimatePresence>
 
-      {/* ── Mobile Bottom Sheet ── */}
-      <AnimatePresence>
-        {isOpen && (
-          <div className="md:hidden fixed inset-0 z-[999] flex flex-col justify-end">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-              onClick={() => setIsOpen(false)}
-            />
-
-            {/* Sheet */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 220 }}
-              className="relative bg-[#EED9BD] rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)] max-h-[80vh] flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Texture */}
-              <img
-                src="/images/image.png"
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 rounded-t-3xl"
-                style={{ mixBlendMode: "multiply", opacity: 0.18 }}
-              />
-
-              <div className="relative z-10 flex flex-col p-6 h-full">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-4 shrink-0">
-                  <h3 className="text-xl font-bold text-[#0B3150] font-display">
-                    Select {label}
-                  </h3>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-full hover:bg-[#E8D2B0] text-[#0B3150] transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Search input */}
-                <div className="relative mb-4 shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3150]/50">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-                  </svg>
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Search for a city..."
-                    value={query}
-                    onChange={handleInput}
-                    className="w-full bg-white shadow-sm border border-transparent focus:border-[#D94328]/30 rounded-2xl py-3.5 pl-11 pr-4 text-[16px] text-[#0B3150] placeholder:text-[#0B3150]/50 outline-none transition-all"
-                  />
-                </div>
-
-                {/* Label */}
-                <div className="text-[12px] font-black text-[#7A4A1E] mb-3 uppercase tracking-widest shrink-0">
-                  {showPopularLabel ? "Popular Cities" : "Search Results"}
-                </div>
-
-                {/* List */}
-                <div className="flex-1 overflow-y-auto scrollbar-hide pb-6">
-                  {showNoResults && (
-                    <div className="text-center py-8">
-                      <p className="text-[15px] font-bold text-neutral-700">No cities found</p>
-                      <p className="text-[13px] text-neutral-500 mt-1">Try a different spelling.</p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {displayList.map((city) => (
-                      <button
-                        key={city.name}
-                        onClick={() => handleSelect(city)}
-                        className={`p-4 text-left rounded-xl transition-colors shadow-sm flex items-center justify-between ${
-                          city.name === value
-                            ? "bg-[#D94328] text-white"
-                            : "bg-white text-[#0B3150] hover:bg-[#E8D2B0]"
-                        }`}
-                      >
-                        <span className="font-bold text-[15px]">{city.name}</span>
-                        <span className={`text-[10px] font-bold ml-2 ${city.name === value ? "text-white/70" : "text-neutral-400"}`}>
-                          {city.code}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
+

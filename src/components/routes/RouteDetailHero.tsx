@@ -65,7 +65,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
       {/* ── SCROLLS AWAY: background + headline ── */}
       <div
         ref={heroRef}
-        className="relative w-full overflow-hidden"
+        className="relative w-full"
         style={{ backgroundColor: "#EAD8BE" }}
       >
         {/* Texture overlay */}
@@ -176,7 +176,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
               : "scale-100 shadow-sm border-[#D8BFA6]"
               }`}
           >
-            <SearchCard variant="compact" hideDrawer={true} initialFrom={origin} initialTo={destination} />
+            <SearchCard variant="compact" initialFrom={origin} initialTo={destination} />
           </div>
         </div>
       </div>
