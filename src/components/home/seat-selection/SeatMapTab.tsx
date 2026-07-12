@@ -10,8 +10,8 @@ interface SeatMapTabProps {
   selectedSeats: any[];
   bookedSeatIds: string[];
   handleToggleSeat: (seatId: string, label: string, price: number) => void;
-  mockBoardingPoints: { name: string; time: string }[];
-  mockDroppingPoints: { name: string; time: string }[];
+  mockBoardingPoints: { name: string; time?: string }[];
+  mockDroppingPoints: { name: string; time?: string }[];
 }
 
 export default function SeatMapTab({

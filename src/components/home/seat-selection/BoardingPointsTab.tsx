@@ -2,7 +2,7 @@ import React from "react";
 
 interface Point {
   name: string;
-  time: string;
+  time?: string;
 }
 
 interface BoardingPointsTabProps {

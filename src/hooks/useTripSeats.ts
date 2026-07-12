@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { SeatConfig } from "@/components/home/PassengerSeatMap";
+import { SeatConfig } from "@/components/home/seat-selection/PassengerSeatMap";
 
 export interface TripSeatsData {
   seatConfig: SeatConfig;
