@@ -17,8 +17,8 @@ interface PassengerDetailsTabProps {
   trip: any;
   boardingPoint: string;
   droppingPoint: string;
-  mockBoardingPoints: { name: string; time: string }[];
-  mockDroppingPoints: { name: string; time: string }[];
+  mockBoardingPoints: { name: string; time?: string }[];
+  mockDroppingPoints: { name: string; time?: string }[];
 }
 
 export default function PassengerDetailsTab({
