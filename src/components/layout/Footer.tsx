@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 
 type TabKey = "routes" | "cities" | "operators" | "quickLinks";
 
@@ -37,9 +38,32 @@ const data = {
 };
 
 export default function Footer() {
-  const [activeTab, setActiveTab] = useState<TabKey>("routes");
+  const [activeTab, setActiveTab] = useState<TabKey | null>("routes");
+  const [visitedLinks, setVisitedLinks] = useState<Set<string>>(new Set());
   const pathname = usePathname();
   const isHome = pathname === "/";
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("visitedFooterLinks");
+      if (stored) {
+        setVisitedLinks(new Set(JSON.parse(stored)));
+      }
+    } catch (e) {
+      console.error("Failed to load visited links", e);
+    }
+  }, []);
+
+  const handleLinkClick = (href: string) => {
+    try {
+      const newVisited = new Set(visitedLinks);
+      newVisited.add(href);
+      setVisitedLinks(newVisited);
+      sessionStorage.setItem("visitedFooterLinks", JSON.stringify(Array.from(newVisited)));
+    } catch (e) {
+      console.error("Failed to save visited link", e);
+    }
+  };
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "routes", label: "Top Bus Routes" },
@@ -65,7 +89,7 @@ export default function Footer() {
         }
       `}</style>
       <footer 
-        className="relative w-full pt-16 md:pt-20 pb-8 text-white z-20 mt-auto footer-mask"
+        className="relative w-full pt-8 md:pt-12 pb-8 text-white z-20 mt-auto footer-mask"
         style={{
           backgroundImage: "url('/images/offer_bg.png')",
           backgroundSize: "cover",
@@ -84,16 +108,75 @@ export default function Footer() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-4">
         {/* Tabs Section */}
-        {/* Tabs Section */}
-        <div className="w-full mb-12 md:mb-16">
-          <div className="flex overflow-x-auto no-scrollbar border-b border-white/20 mb-8 md:mb-10">
+        {/* Mobile Accordion Section */}
+        <div className="lg:hidden w-full mb-10 flex flex-col space-y-3">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <div key={tab.key} className="flex flex-col border-b border-white/20 last:border-0 pb-3">
+                <button
+                  onClick={() => setActiveTab(isActive ? null : tab.key)}
+                  className="flex items-center justify-between w-full py-3 text-left font-bold text-white transition-all"
+                >
+                  <span className="text-lg">{tab.label}</span>
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform duration-300 ${
+                      isActive ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`grid grid-rows-5 grid-flow-col auto-cols-[85%] sm:auto-cols-[45%] gap-0 overflow-x-auto snap-x snap-mandatory pb-2 [&::-webkit-scrollbar]:hidden transition-all duration-300 ${
+                    isActive ? "max-h-[500px] mt-4 opacity-100" : "max-h-0 opacity-0 mt-0"
+                  }`}
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {data[tab.key].map((item, index) => {
+                    let href = "/";
+                    if (tab.key === "routes") {
+                      const slug = item.replace(/ Bus$/i, "").toLowerCase().replace(/\s+/g, "-");
+                      href = `/routes/${slug}`;
+                    } else if (tab.key === "cities") {
+                      href = `/cities/${item.toLowerCase().replace(/\s+/g, "-")}`;
+                    } else if (tab.key === "operators") {
+                      href = `/operators/${item.toLowerCase().replace(/\s+/g, "-")}`;
+                    } else {
+                      href = `/${item.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
+                    }
+                    return (
+                      <Link
+                        key={index}
+                        href={href}
+                        onClick={() => handleLinkClick(href)}
+                        className={`text-base font-medium transition-colors truncate flex items-center py-1 pr-4 gap-1.5 snap-start select-none [-webkit-tap-highlight-color:transparent] ${
+                          visitedLinks.has(href)
+                            ? "text-[#D8BFA6] hover:text-[#E8D2B0]"
+                            : "text-white/80 hover:text-white"
+                        }`}
+                      >
+                        {item}
+                        {visitedLinks.has(href) && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-70 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Tabs Section */}
+        <div className="hidden lg:block w-full mb-16">
+          <div className="flex overflow-x-auto no-scrollbar border-b border-white/20 mb-10">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`whitespace-nowrap px-6 md:px-8 py-4 md:py-5 text-base md:text-lg font-bold transition-all border-b-[3px] ${
+                  className={`whitespace-nowrap px-8 py-5 text-lg font-bold transition-all border-b-[3px] ${
                     isActive 
                       ? "text-white border-white bg-white/10" 
                       : "text-white/70 border-transparent hover:text-white hover:bg-white/5"
@@ -105,20 +188,34 @@ export default function Footer() {
             })}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
-            {data[activeTab].map((item, index) => {
+          <div className="grid grid-cols-4 gap-x-6 gap-y-5">
+            {activeTab && data[activeTab] && data[activeTab].map((item, index) => {
               let href = "/routes";
               if (activeTab === "routes") {
                 const slug = item.replace(/ Bus$/i, "").toLowerCase().replace(/\s+/g, "-");
                 href = `/routes/${slug}`;
+              } else if (activeTab === "cities") {
+                href = `/cities/${item.toLowerCase().replace(/\s+/g, "-")}`;
+              } else if (activeTab === "operators") {
+                href = `/operators/${item.toLowerCase().replace(/\s+/g, "-")}`;
+              } else {
+                href = `/${item.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
               }
               return (
                 <Link 
                   key={index}
                   href={href} 
-                  className="text-base md:text-lg font-semibold text-white/90 hover:text-white transition-all truncate drop-shadow-sm"
+                  onClick={() => handleLinkClick(href)}
+                  className={`text-lg font-semibold transition-all truncate drop-shadow-sm flex items-center gap-1.5 select-none [-webkit-tap-highlight-color:transparent] ${
+                    visitedLinks.has(href)
+                      ? "text-[#D8BFA6] hover:text-[#E8D2B0]"
+                      : "text-white/90 hover:text-white"
+                  }`}
                 >
                   {item}
+                  {visitedLinks.has(href) && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-70 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+                  )}
                 </Link>
               );
             })}

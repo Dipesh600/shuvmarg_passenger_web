@@ -135,7 +135,7 @@ export default function SearchCard({
       </style>
       {variant === "default" ? (
         <div
-          className="w-full rounded-t-[40px] rounded-b-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-2 md:gap-0 border border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 relative search-card-bg"
+          className="w-full rounded-t-[40px] rounded-b-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-2 md:gap-0 border border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 relative search-card-bg z-40"
           style={{ minHeight: "120px" }}
         >
           {/* Paper texture overlay */}
@@ -148,7 +148,7 @@ export default function SearchCard({
           />
 
           {/* From Field */}
-          <div className="flex-1 w-full min-w-0 relative z-10">
+          <div className={`flex-1 w-full min-w-0 relative ${isFromPickerOpen ? 'z-[60]' : 'z-10'}`}>
             <CityPicker
               label="Origin"
               selectedCity={from}
@@ -184,7 +184,7 @@ export default function SearchCard({
           </div>
 
           {/* To Field */}
-          <div className="flex-1 w-full min-w-0 relative z-10">
+          <div className={`flex-1 w-full min-w-0 relative ${isToPickerOpen ? 'z-[60]' : 'z-10'}`}>
             <CityPicker
               label="Destination"
               selectedCity={to}
@@ -208,7 +208,7 @@ export default function SearchCard({
           <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-2 relative z-10"></div>
 
           {/* Date Field with Scroller */}
-          <div className="flex-[2] w-full flex items-center justify-start px-2 py-2 relative z-10 min-w-0">
+          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-2 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-10'}`}>
             {/* Calendar Icon (Opens Picker) */}
             <div className="shrink-0 mr-2">
               <CustomDatePicker
@@ -260,9 +260,9 @@ export default function SearchCard({
           </button>
         </div>
       ) : (
-        <div className="flex flex-row items-center gap-2 w-full overflow-x-auto scrollbar-hide pb-1 md:pb-0">
+        <div className="flex flex-row items-center gap-2 w-full pb-1 md:pb-0 relative z-20">
           {/* From Field */}
-          <div className="flex-1 w-full">
+          <div className={`flex-1 w-full relative ${isFromPickerOpen ? 'z-[60]' : 'z-10'}`}>
             <CityPicker
               label="Origin"
               selectedCity={from}
@@ -294,7 +294,7 @@ export default function SearchCard({
           </div>
 
           {/* To Field */}
-          <div className="flex-1 w-full">
+          <div className={`flex-1 w-full relative ${isToPickerOpen ? 'z-[60]' : 'z-10'}`}>
             <CityPicker
               label="Destination"
               selectedCity={to}
@@ -318,7 +318,7 @@ export default function SearchCard({
           <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-1"></div>
 
           {/* Date Field with Scroller */}
-          <div className="flex-[2] w-full flex items-center justify-start px-2 py-1 relative z-10 min-w-0">
+          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-10'}`}>
             {/* Calendar Icon (Opens Picker) */}
             <div className="shrink-0 mr-1">
               <CustomDatePicker
@@ -439,9 +439,9 @@ export default function SearchCard({
                 </button>
               </div>
 
-              <div className={`bg-white/60 backdrop-blur-md rounded-2xl border p-2 md:pr-6 md:pl-4 flex flex-row items-center gap-2 overflow-x-auto scrollbar-hide pb-1 md:pb-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky ? 'scale-[0.98] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/90 border-[#D94328]/30 border-b-[#D94328]/80' : 'scale-100 shadow-sm border-[#D8BFA6]'}`}>
+              <div className={`bg-white/60 backdrop-blur-md rounded-2xl border p-2 md:pr-6 md:pl-4 flex flex-row items-center gap-2 pb-1 md:pb-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] relative z-20 ${isSticky ? 'scale-[0.98] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/90 border-[#D94328]/30 border-b-[#D94328]/80' : 'scale-100 shadow-sm border-[#D8BFA6]'}`}>
                 {/* From Field */}
-                <div className="flex-1 w-full">
+                <div className={`flex-1 w-full relative ${isFromPickerOpen ? 'z-[60]' : 'z-10'}`}>
                   <CityPicker
                     label="Origin"
                     selectedCity={from}
@@ -473,7 +473,7 @@ export default function SearchCard({
                 </div>
 
                 {/* To Field */}
-                <div className="flex-1 w-full">
+                <div className={`flex-1 w-full relative ${isToPickerOpen ? 'z-[60]' : 'z-10'}`}>
                   <CityPicker
                     label="Destination"
                     selectedCity={to}
@@ -497,7 +497,7 @@ export default function SearchCard({
                 <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-1"></div>
 
                 {/* Date Field with Scroller */}
-                <div className="flex-[2] w-full flex items-center justify-start px-2 py-1 relative z-10 min-w-0">
+                <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isStickyDatePickerOpen ? 'z-[60]' : 'z-10'}`}>
                   {/* Calendar Icon (Opens Picker) */}
                   <div className="shrink-0 mr-1">
                     <CustomDatePicker

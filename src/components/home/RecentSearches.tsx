@@ -26,7 +26,10 @@ export default function RecentSearches() {
   }
 
   return (
-    <div className="w-full flex flex-col md:flex-row items-start md:items-center gap-3 mt-6 pl-2">
+    <div className="w-full flex flex-col items-start gap-3 mt-6 pl-2 relative z-30">
+      <div className="flex items-center gap-2">
+        <h3 className="text-[#0B3150] font-bold text-base md:text-lg">Last Visited</h3>
+      </div>
       <div className="flex overflow-x-auto overflow-y-hidden md:flex-wrap gap-3 pb-2 md:pb-0 w-full snap-x snap-mandatory [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {recentSearches.map((search, idx) => (
           <button

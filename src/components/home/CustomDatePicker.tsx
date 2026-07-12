@@ -113,7 +113,7 @@ export function CustomDatePicker({ selectedDate, onChange, isOpen, onClose, onOp
           </div>
           
           {/* Mobile Bottom Sheet */}
-          <div className="md:hidden fixed inset-0 z-[120] flex flex-col justify-end">
+          <div className="md:hidden fixed inset-0 z-[999] flex flex-col justify-end">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); onClose(); }} />
             <div className="relative bg-[#EED9BD] rounded-t-3xl p-6 transform transition-transform shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
                <img

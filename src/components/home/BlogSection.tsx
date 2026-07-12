@@ -17,20 +17,20 @@ export default function BlogSection() {
       <div className="relative max-w-6xl mx-auto px-4 md:px-8 space-y-24">
         
         {/* Block 1: Image Left, Text Right */}
-        <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
-          <div className="w-full md:w-1/2 flex justify-center relative">
-            <div className="absolute inset-0 bg-[#ff7828]/5 rounded-full blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-16 py-6 lg:py-0">
+          <div className="absolute inset-0 lg:relative lg:inset-auto flex w-full lg:w-1/2 justify-center items-center opacity-10 lg:opacity-100 pointer-events-none lg:pointer-events-auto z-0 lg:z-10">
+            <div className="hidden lg:block absolute inset-0 bg-[#ff7828]/5 rounded-full blur-3xl" />
             <Image 
               src="/images/offers/ticket.webp" 
               alt="Book Bus Tickets Online" 
               width={400} 
               height={400} 
-              className="relative z-10 w-[80%] md:w-full max-w-[400px] h-auto object-contain drop-shadow-lg hover:-translate-y-2 transition-transform duration-500" 
+              className="relative z-10 w-full max-w-[400px] h-full lg:h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500" 
             />
           </div>
-          <div className="w-full md:w-1/2">
+          <div className="w-full lg:w-1/2 relative z-10">
             <h2 className="text-[#015db8] text-3xl md:text-4xl font-black font-display tracking-tight mb-6 leading-tight">
-              How to Book Bus Tickets Online on <span className="text-[#ff7828]">ShuvMarg</span>
+              How to Book Bus Tickets Online on <span className="text-black">Shuv</span><span className="text-[#ff7828]">Marg</span>
             </h2>
             <p className="text-gray-600 text-base md:text-lg mb-6 leading-relaxed">
               Every booking or transaction you do on the ShuvMarg website is simple, safe & secure. You can complete your booking process by following the steps mentioned below.
@@ -53,18 +53,18 @@ export default function BlogSection() {
         </div>
 
         {/* Block 2: Text Left, Image Right */}
-        <div className="flex flex-col md:flex-row-reverse items-center gap-10 md:gap-16">
-          <div className="w-full md:w-1/2 flex justify-center relative">
-            <div className="absolute inset-0 bg-[#015db8]/5 rounded-full blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row-reverse items-center gap-10 lg:gap-16 py-6 lg:py-0">
+          <div className="absolute inset-0 lg:relative lg:inset-auto flex w-full lg:w-1/2 justify-center items-center opacity-10 lg:opacity-100 pointer-events-none lg:pointer-events-auto z-0 lg:z-10">
+            <div className="hidden lg:block absolute inset-0 bg-[#015db8]/5 rounded-full blur-3xl" />
             <Image 
               src="/images/offers/wallet.webp" 
               alt="Benefits of Booking Online" 
               width={400} 
               height={400} 
-              className="relative z-10 w-[80%] md:w-full max-w-[400px] h-auto object-contain drop-shadow-lg hover:-translate-y-2 transition-transform duration-500" 
+              className="relative z-10 w-full max-w-[400px] h-full lg:h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500" 
             />
           </div>
-          <div className="w-full md:w-1/2">
+          <div className="w-full lg:w-1/2 relative z-10">
             <h2 className="text-[#015db8] text-3xl md:text-4xl font-black font-display tracking-tight mb-6 leading-tight">
               Benefits of Booking Bus Tickets <span className="text-[#ff7828]">Online</span>
             </h2>
@@ -90,18 +90,18 @@ export default function BlogSection() {
         </div>
 
         {/* Block 3: Image Left, Text Right */}
-        <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
-          <div className="w-full md:w-1/2 flex justify-center relative">
-            <div className="absolute inset-0 bg-[#ff7828]/5 rounded-full blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-16 py-6 lg:py-0">
+          <div className="absolute inset-0 lg:relative lg:inset-auto flex w-full lg:w-1/2 justify-center items-center opacity-10 lg:opacity-100 pointer-events-none lg:pointer-events-auto z-0 lg:z-10">
+            <div className="hidden lg:block absolute inset-0 bg-[#ff7828]/5 rounded-full blur-3xl" />
             <Image 
               src="/images/offers/bus.webp" 
               alt="Online Bus Booking Services" 
               width={400} 
               height={400} 
-              className="relative z-10 w-[80%] md:w-full max-w-[400px] h-auto object-contain drop-shadow-lg hover:-translate-y-2 transition-transform duration-500" 
+              className="relative z-10 w-full max-w-[400px] h-full lg:h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500" 
             />
           </div>
-          <div className="w-full md:w-1/2">
+          <div className="w-full lg:w-1/2 relative z-10">
             <h2 className="text-[#015db8] text-3xl md:text-4xl font-black font-display tracking-tight mb-6 leading-tight">
               Online Bus Booking <span className="text-[#ff7828]">Services</span>
             </h2>

@@ -39,7 +39,7 @@ export default function AboutSection() {
 
   return (
     <section 
-      className="relative w-full py-16 md:py-20 text-white overflow-hidden z-20"
+      className="relative w-full pt-16 md:pt-20 pb-4 md:pb-8 text-white overflow-hidden z-20"
       style={{
         backgroundImage: "url('/images/offer_bg.png')",
         backgroundSize: "cover",
@@ -63,7 +63,7 @@ export default function AboutSection() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="max-w-3xl">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-white drop-shadow-sm mb-6">
               About Shuv<span className="text-[#D94328]">Marg</span>
