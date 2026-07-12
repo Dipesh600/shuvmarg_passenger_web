@@ -45,8 +45,8 @@ export default function LoginPage() {
       {/* Main Card Container */}
       <div className="w-full h-full max-w-[1600px] bg-white rounded-[40px] overflow-hidden flex flex-col lg:flex-row shadow-2xl relative z-10">
         
-        {/* Left Panel */}
-        <div className="relative w-full lg:w-1/2 flex flex-col justify-between p-8 lg:p-12 z-0">
+        {/* Left Panel - Hidden on small/medium screens */}
+        <div className="relative hidden lg:flex w-1/2 flex-col justify-between p-12 z-0">
           <img 
             src="/images/signup.webp" 
             alt="ShuvMarg Journey" 
@@ -69,7 +69,7 @@ export default function LoginPage() {
             </div>
             
             <div className="mt-24 lg:mt-auto mb-10">
-              <h1 className="text-4xl lg:text-5xl font-bold font-display leading-[1.1] mb-2 text-white">
+              <h1 className="text-5xl font-bold font-display leading-[1.1] mb-2 text-white">
                 Find your bus.<br />
                 <span className="text-[#D94328]">Choose your seat.</span>
               </h1>
@@ -81,15 +81,15 @@ export default function LoginPage() {
             {/* Metrics */}
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/20">
                <div>
-                  <div className="text-white font-bold text-2xl lg:text-3xl font-display">100+</div>
+                  <div className="text-white font-bold text-3xl font-display">100+</div>
                   <div className="text-white/60 text-xs mt-1">Verified Operators</div>
                </div>
                <div>
-                  <div className="text-white font-bold text-2xl lg:text-3xl font-display">500+</div>
+                  <div className="text-white font-bold text-3xl font-display">500+</div>
                   <div className="text-white/60 text-xs mt-1">Routes Available</div>
                </div>
                <div>
-                  <div className="text-white font-bold text-2xl lg:text-3xl font-display">Secure</div>
+                  <div className="text-white font-bold text-3xl font-display">Secure</div>
                   <div className="text-white/60 text-xs mt-1">Digital Payments</div>
                </div>
             </div>
@@ -101,15 +101,24 @@ export default function LoginPage() {
         </div>
 
         {/* Right Panel */}
-        <div className="w-full lg:w-1/2 bg-white z-10 p-8 lg:p-12 flex flex-col justify-center relative">
-          {/* Logo */}
-          <div className="flex justify-end mb-8 lg:absolute lg:top-12 lg:right-12 lg:mb-0">
-            <Link href="/" className="font-bold text-[32px] tracking-tight text-[#0B3150] cursor-pointer">
+        <div className="w-full lg:w-1/2 bg-white z-10 p-6 sm:p-8 lg:p-12 flex flex-col relative overflow-y-auto">
+          {/* Header with Back Button (Mobile) and Logo */}
+          <div className="flex justify-between items-center mb-8 lg:absolute lg:top-12 lg:left-12 lg:right-12 lg:mb-0 shrink-0">
+            <button 
+              onClick={() => router.back()}
+              className="lg:hidden inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-[#1A1A1A] rounded-full text-sm font-bold transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back
+            </button>
+            <Link href="/" className="font-display font-bold text-[28px] sm:text-[32px] tracking-tight text-[#0B3150] cursor-pointer ml-auto">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </div>
 
-          <div className="max-w-md w-full mx-auto flex flex-col justify-center">
+          <div className="max-w-md w-full mx-auto flex-1 flex flex-col justify-center py-4 lg:py-0">
             <h2 className="text-3xl lg:text-[40px] font-bold text-[#1A1A1A] mb-2 leading-tight">
               Welcome Back
             </h2>
