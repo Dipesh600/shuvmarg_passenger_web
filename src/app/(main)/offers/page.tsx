@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Paperclip, Bus, Gift } from "lucide-react";
@@ -13,6 +14,11 @@ export default function OffersPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -23,72 +29,76 @@ export default function OffersPage() {
   const showShuvMarg = activeTab === "All" || activeTab === "ShuvMarg Offers";
   const showBusPartner = activeTab === "All" || activeTab === "Bus Partner Offers";
 
+  const overlayContent = (
+    <AnimatePresence>
+      {copiedCode && (
+        <motion.div
+          initial={{ opacity: 0, y: -50, x: "-50%" }}
+          animate={{ opacity: 1, y: 0, x: "-50%" }}
+          exit={{ opacity: 0, y: -50, x: "-50%" }}
+          className="fixed top-24 left-1/2 z-[99999]"
+        >
+          <div className="bg-[#ff7828] text-white px-8 py-3 rounded-2xl shadow-2xl flex items-center gap-3 stamp-edge">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+            <span className="font-bold text-sm tracking-wide">Code <span className="bg-white text-[#ff7828] px-2 py-0.5 rounded ml-1 mr-1">{copiedCode}</span> copied!</span>
+          </div>
+        </motion.div>
+      )}
+      {selectedOffer && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setSelectedOffer(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative"
+          >
+            <button 
+              onClick={() => setSelectedOffer(null)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div className="w-12 h-12 rounded-full bg-[#ff7828]/10 flex items-center justify-center mb-5">
+              <Gift className="w-6 h-6 text-[#ff7828]" />
+            </div>
+            <h3 className="text-[#015db8] font-black font-display text-2xl mb-2 uppercase tracking-tight">Offer Details</h3>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">Here you can see more details about the <span className="font-bold text-[#ff7828]">{selectedOffer}</span> offer, including terms and conditions, and how to apply it to your next bus booking.</p>
+            
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-6">
+              <ul className="text-xs text-gray-500 space-y-2">
+                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#ff7828] mt-1 shrink-0"></div> Valid on selected routes only.</li>
+                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#ff7828] mt-1 shrink-0"></div> Cannot be combined with other offers.</li>
+                <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#ff7828] mt-1 shrink-0"></div> Standard ShuvMarg cancellation policies apply.</li>
+              </ul>
+            </div>
+
+            <button 
+              onClick={() => {
+                handleCopy(selectedOffer);
+                setSelectedOffer(null);
+              }}
+              className="w-full bg-[#ff7828] text-white font-bold py-3.5 rounded-xl hover:bg-[#e66a22] transition-colors shadow-md shadow-[#ff7828]/20 flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+              Copy Code & Use
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <>
-      <AnimatePresence>
-        {copiedCode && (
-          <motion.div
-            initial={{ opacity: 0, y: -50, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: -50, x: "-50%" }}
-            className="fixed top-24 left-1/2 z-[100]"
-          >
-            <div className="bg-[#ff7828] text-white px-8 py-3 rounded-2xl shadow-2xl flex items-center gap-3 stamp-edge">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-              <span className="font-bold text-sm tracking-wide">Code <span className="bg-white text-[#ff7828] px-2 py-0.5 rounded ml-1 mr-1">{copiedCode}</span> copied!</span>
-            </div>
-          </motion.div>
-        )}
-        {selectedOffer && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
-            onClick={() => setSelectedOffer(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative"
-            >
-              <button 
-                onClick={() => setSelectedOffer(null)}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-              <div className="w-12 h-12 rounded-full bg-[#ff7828]/10 flex items-center justify-center mb-5">
-                <Gift className="w-6 h-6 text-[#ff7828]" />
-              </div>
-              <h3 className="text-[#015db8] font-black font-display text-2xl mb-2 uppercase tracking-tight">Offer Details</h3>
-              <p className="text-gray-600 text-sm mb-6 leading-relaxed">Here you can see more details about the <span className="font-bold text-[#ff7828]">{selectedOffer}</span> offer, including terms and conditions, and how to apply it to your next bus booking.</p>
-              
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-6">
-                <ul className="text-xs text-gray-500 space-y-2">
-                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#ff7828] mt-1 shrink-0"></div> Valid on selected routes only.</li>
-                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#ff7828] mt-1 shrink-0"></div> Cannot be combined with other offers.</li>
-                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#ff7828] mt-1 shrink-0"></div> Standard ShuvMarg cancellation policies apply.</li>
-                </ul>
-              </div>
-
-              <button 
-                onClick={() => {
-                  handleCopy(selectedOffer);
-                  setSelectedOffer(null);
-                }}
-                className="w-full bg-[#ff7828] text-white font-bold py-3.5 rounded-xl hover:bg-[#e66a22] transition-colors shadow-md shadow-[#ff7828]/20 flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                Copy Code & Use
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {mounted && typeof document !== "undefined" ? createPortal(overlayContent, document.body) : overlayContent}
       <main className="min-h-screen bg-[#EAD8BE] -mt-[80px] relative">
         <div 
           className="absolute inset-0 opacity-[0.12] mix-blend-multiply pointer-events-none"
@@ -153,6 +163,16 @@ export default function OffersPage() {
           
           <div className="max-w-[1200px] mx-auto px-4 md:px-8 relative z-10">
             
+            {/* Mobile Text (moved from hero) */}
+            <div className="md:hidden text-center mb-8">
+              <h2 className="text-3xl font-display font-bold text-white mb-3 tracking-tight leading-tight drop-shadow-sm">
+                Unlock <span className="text-[#FF7F3F] font-['Caveat',_cursive] text-4xl tracking-wider">exclusive deals</span>
+              </h2>
+              <p className="text-white/90 text-[15px] font-medium px-2 leading-relaxed">
+                Travel more, spend less. Discover the best promotions for your next bus journey.
+              </p>
+            </div>
+
             {/* Offers Filter Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-8 flex flex-row items-center gap-2 w-full max-w-fit mx-auto overflow-x-auto hide-scrollbar relative z-20">
               {OFFERS_TABS.map((tab) => (

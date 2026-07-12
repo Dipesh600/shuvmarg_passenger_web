@@ -31,6 +31,50 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const [expandedPassenger, setExpandedPassenger] = useState<number>(0);
   const [selectedMethod, setSelectedMethod] = useState<string>('esewa');
   const [timeLeft, setTimeLeft] = useState(600);
+  const [isMobileDetailsExpanded, setIsMobileDetailsExpanded] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const dragStartY = useRef<number | null>(null);
+  const dragCurrentY = useRef<number | null>(null);
+
+  const handleDragStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const y = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragStartY.current = y;
+    dragCurrentY.current = y;
+  };
+
+  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (dragStartY.current === null) return;
+    const currentY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragCurrentY.current = currentY;
+    const offset = currentY - dragStartY.current;
+    
+    if (isMobileDetailsExpanded && offset > 0) {
+      setDragOffset(offset);
+    } else if (!isMobileDetailsExpanded && offset < 0) {
+      setDragOffset(offset);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (dragStartY.current === null || dragCurrentY.current === null) return;
+    
+    const offset = dragCurrentY.current - dragStartY.current;
+    
+    // If it was just a tap (less than 10px movement)
+    if (Math.abs(offset) < 10) {
+      setIsMobileDetailsExpanded(!isMobileDetailsExpanded);
+    } else {
+      if (isMobileDetailsExpanded) {
+        if (offset > 80) setIsMobileDetailsExpanded(false);
+      } else {
+        if (offset < -50) setIsMobileDetailsExpanded(true);
+      }
+    }
+    
+    setDragOffset(0);
+    dragStartY.current = null;
+    dragCurrentY.current = null;
+  };
 
   useEffect(() => {
     if (activeTab !== 'checkout' || !timeLeft) return;
@@ -72,7 +116,20 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     }
   }, [trip]);
   const rightPaneRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    const activeTab = container.querySelector<HTMLButtonElement>(`[data-tab-id="${activeSection}"]`);
+    if (activeTab) {
+      const containerRect = container.getBoundingClientRect();
+      const tabRect = activeTab.getBoundingClientRect();
+      const scrollLeft = container.scrollLeft + (tabRect.left - containerRect.left) - (containerRect.width / 2) + (tabRect.width / 2);
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+    }
+  }, [activeSection]);
 
   const scrollToSection = useCallback((id: string) => {
     const el = sectionRefs.current[id];
@@ -145,7 +202,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       
       {/* Drawer */}
       <div 
-        className={`fixed bottom-0 left-0 w-full h-[90vh] bg-[#EED9BD] shadow-2xl z-[101] flex flex-col rounded-t-3xl overflow-hidden border-x border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform overscroll-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 left-0 w-full h-[100dvh] md:h-[90vh] bg-[#EED9BD] shadow-2xl z-[101] flex flex-col rounded-none md:rounded-t-3xl overflow-hidden md:border-x md:border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform overscroll-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Extra div to cover bottom overscroll on iOS */}
         <div className="absolute top-[100%] left-0 w-full h-[50vh] bg-[#EED9BD]" />
@@ -160,24 +217,32 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
         />
         
         {/* Header */}
-        <div className="h-16 border-b border-[#D8C5A8] px-6 flex items-center justify-between bg-transparent relative z-10 flex-shrink-0">
-          <div className="flex items-center gap-4">
+        <div className="h-16 border-b border-[#D8C5A8] px-4 md:px-6 flex items-center justify-between bg-transparent relative z-10 flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-4">
             <button 
               onClick={handleClose}
-              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors"
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors shrink-0"
             >
               <ArrowLeft className="w-5 h-5 text-neutral-900" />
             </button>
-            <h2 className="text-lg font-bold text-neutral-900">
+            <h2 className="text-[16px] md:text-lg font-bold text-neutral-900">
               {trip.routeDetail?.from || "Origin"} → {trip.routeDetail?.to || "Destination"}
             </h2>
           </div>
           
+          <div className="md:hidden shrink-0 ml-2">
+            <span className="text-[14px] font-bold text-[#7A1D1B]">
+              {activeTab === 'seats' && 'Select seats'}
+              {activeTab === 'points' && 'Board/Drop point'}
+              {activeTab === 'passenger' && 'Passenger info'}
+              {activeTab === 'checkout' && 'Payment'}
+            </span>
+          </div>
         </div>
 
         {/* Top Tabs */}
-        <div className="border-b border-[#D8C5A8] px-6 bg-transparent relative z-10 flex justify-between items-center flex-shrink-0">
-          <div className="flex gap-8">
+        <div className="hidden md:flex border-b border-[#D8C5A8] bg-transparent relative z-10 justify-between items-center flex-shrink-0">
+          <div className="flex gap-6 md:gap-8 overflow-x-auto px-4 md:px-6 scrollbar-hide">
             {[
               { id: "seats", label: "Select seats" },
               { id: "points", label: "Board/Drop point" },
@@ -188,7 +253,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={[
-                  "py-4 text-[14px] font-bold border-b-2 transition-colors",
+                  "py-4 text-[14px] font-bold border-b-2 transition-colors whitespace-nowrap",
                   activeTab === tab.id 
                     ? "border-[#7A1D1B] text-[#7A1D1B]" 
                     : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -199,7 +264,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
             ))}
           </div>
           
-          <div className="flex flex-col items-start justify-center py-2">
+          <div className="hidden md:flex flex-col items-start justify-center py-2 pr-6 shrink-0">
             <div className="flex items-center gap-3">
               <span className="text-[18px] font-bold text-neutral-900">
                 {trip.busDetail.busName}
@@ -219,9 +284,28 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden relative z-10 ">
           {activeTab === 'seats' && (
-            <div className="w-full flex h-full min-h-0">
+            <div className="w-full flex h-full min-h-0 relative">
               {/* Left Pane - Seat Map */}
-              <div className="w-1/2 border-r border-[#D8C5A8] bg-transparent p-8 flex flex-col items-center overflow-y-auto min-h-0">
+              <div className="w-full md:w-1/2 border-r-0 md:border-r border-[#D8C5A8] bg-transparent p-4 md:p-8 flex flex-col items-center overflow-y-auto min-h-0 pb-[80px] md:pb-8">
+              
+              {/* Seat Types Legend */}
+              <div className="mb-2 w-full max-w-sm">
+                <div className="flex flex-wrap justify-center gap-6">
+                  <div className="flex items-center gap-1.5">
+                    <SeatIcon state="available" className="scale-75 origin-left" />
+                    <span className="text-[12px] text-neutral-600 font-medium">Available</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <SeatIcon state="occupied" className="scale-75 origin-left" />
+                    <span className="text-[12px] text-neutral-600 font-medium">Sold</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <SeatIcon state="selected" className="scale-75 origin-left" />
+                    <span className="text-[12px] text-neutral-600 font-medium">Selected</span>
+                  </div>
+                </div>
+              </div>
+
               {isLoading ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="w-8 h-8 border-4 border-neutral-200 border-t-[#7A1D1B] rounded-full animate-spin" />
@@ -241,42 +325,57 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                   basePrice={trip.tripFare}
                 />
               ) : null}
-
-              {/* Seat Types Legend */}
-              <div className="mt-8  p-4 rounded-xl border border-neutral-200 shadow-sm w-full max-w-sm">
-                <h4 className="text-[13px] font-bold text-neutral-900 mb-4 text-center">Know your seat types</h4>
-                <div className="flex flex-wrap justify-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <SeatIcon state="available" className="scale-75 origin-left" />
-                    <span className="text-[12px] text-neutral-600 font-medium">Available</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <SeatIcon state="occupied" className="scale-75 origin-left" />
-                    <span className="text-[12px] text-neutral-600 font-medium">Sold</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <SeatIcon state="selected" className="scale-75 origin-left" />
-                    <span className="text-[12px] text-neutral-600 font-medium">Selected</span>
-                  </div>
-                </div>
-              </div>
             </div>
 
               {/* Right Pane - Bus Details (Scrollspy) */}
-              <div ref={rightPaneRef} className="w-1/2 overflow-y-scroll min-h-0" onScroll={() => {
-                const container = rightPaneRef.current;
-                if (!container) return;
-                const sections = ['amenities','cancellation','points','route','reviews','policies'];
-                let current = sections[0];
-                for (const id of sections) {
-                  const el = sectionRefs.current[id];
-                  if (!el) continue;
-                  const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top;
-                  if (top <= 64) current = id;
-                }
-                setActiveSection(current);
-              }}>
-                {/* Bus Photos */}
+              <div 
+                ref={rightPaneRef} 
+                style={{ 
+                  transform: `translateY(${dragOffset > 0 || dragOffset < 0 ? dragOffset : 0}px)`,
+                  transition: dragStartY.current === null ? 'all 300ms cubic-bezier(0.2,0.8,0.2,1)' : 'none'
+                }}
+                className={`absolute md:relative bottom-0 left-0 w-full md:w-1/2 bg-[#F5F0E8] md:bg-transparent shadow-[0_-8px_30px_rgba(0,0,0,0.12)] md:shadow-none rounded-t-3xl md:rounded-none ${isMobileDetailsExpanded ? 'h-[80%] z-50 overflow-y-auto' : 'h-[76px] md:h-full z-20 md:overflow-y-scroll'} min-h-0 border-t border-[#D8C5A8] md:border-none md:!transform-none md:!transition-none`} 
+                onScroll={() => {
+                  const container = rightPaneRef.current;
+                  if (!container) return;
+                  const sections = ['amenities','cancellation','points','route','reviews','policies'];
+                  let current = sections[0];
+                  for (const id of sections) {
+                    const el = sectionRefs.current[id];
+                    if (!el) continue;
+                    const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top;
+                    if (top <= 120) current = id;
+                  }
+                  setActiveSection(current);
+                }}
+              >
+                {/* Mobile Drag Handle & Title */}
+                <div 
+                  className="md:hidden flex flex-col items-center justify-center h-[76px] pb-2 cursor-pointer bg-[#F5F0E8] sticky top-0 z-30 w-full rounded-t-3xl border-b border-[#D8C5A8]/50"
+                  onTouchStart={handleDragStart}
+                  onTouchMove={handleDragMove}
+                  onTouchEnd={handleDragEnd}
+                  onMouseDown={handleDragStart}
+                  onMouseMove={handleDragMove}
+                  onMouseUp={handleDragEnd}
+                  onMouseLeave={handleDragEnd}
+                >
+                  <div className="w-10 h-1.5 bg-[#D8C5A8] rounded-full mb-1" />
+                  <div className="flex justify-between items-center w-full px-6 mt-1">
+                    <div className="flex flex-col items-start">
+                      <span className="text-[14px] font-bold text-neutral-900 leading-tight">{trip.busDetail.busName}</span>
+                      <span className="text-[12px] text-neutral-500 font-medium leading-tight">{trip.busDetail.busType}</span>
+                    </div>
+                    {trip.busDetail.averageRating > 0 && (
+                      <div className="bg-[#16a34a] text-white px-2 py-0.5 rounded text-[12px] font-bold flex items-center shadow-sm shrink-0">
+                        ★ {trip.busDetail.averageRating.toFixed(1)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className={`md:block ${isMobileDetailsExpanded ? 'block' : 'hidden'}`}>
+                  {/* Bus Photos */}
                 <div className="px-8 pt-8 pb-4">
                   <h4 className="text-[14px] font-bold text-neutral-900 mb-3">Bus Photos</h4>
                   {trip.busDetail.fleetImages.length > 0 ? (
@@ -294,7 +393,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                 </div>
 
                 {/* Sticky Scrollspy Tabs */}
-                <div className="sticky top-0 z-10 bg-[#EED9BD]/90 backdrop-blur-md border-b border-[#D8C5A8] px-8 flex gap-6 overflow-x-auto scrollbar-hide">
+                <div ref={tabsContainerRef} className="sticky top-[76px] md:top-0 z-20 bg-[#F5F0E8] md:bg-[#EED9BD]/90 backdrop-blur-md border-b border-[#D8C5A8] px-8 flex gap-6 overflow-x-auto scrollbar-hide">
                   {[
                     { id: 'amenities', label: 'Amenities' },
                     { id: 'cancellation', label: 'Cancellation Policy' },
@@ -305,6 +404,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                   ].map(tab => (
                     <button
                       key={tab.id}
+                      data-tab-id={tab.id}
                       onClick={() => scrollToSection(tab.id)}
                       className={`py-3 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
                         activeSection === tab.id
@@ -512,6 +612,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                     </div>
                   </section>
 
+                </div>
+                {/* End Mobile Details Wrapper */}
                 </div>
               </div>
             </div>

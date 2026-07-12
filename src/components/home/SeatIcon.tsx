@@ -86,8 +86,6 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
       <div className="h-3 flex items-center justify-center mt-0.5">
         {price ? (
           <span className="text-[8px] font-medium text-neutral-500 group-hover:text-[#7A1D1B] transition-colors">Rs. {price}</span>
-        ) : state === "occupied" ? (
-          <span className="text-[8px] font-medium text-neutral-400">Sold</span>
         ) : null}
       </div>
     </div>

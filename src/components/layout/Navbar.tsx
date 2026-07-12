@@ -23,7 +23,7 @@ export default function Navbar({ className }: NavbarProps) {
   const accountRef = React.useRef<HTMLDivElement>(null);
   
   const pathname = usePathname();
-  const isHeroPage = pathname.startsWith("/routes") || pathname === "/bookings" || pathname === "/help";
+  const isHeroPage = pathname.startsWith("/routes") || pathname === "/bookings" || pathname === "/help" || pathname === "/offers" || pathname === "/profile" || pathname === "/wallet";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

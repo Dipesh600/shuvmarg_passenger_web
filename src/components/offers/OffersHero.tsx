@@ -74,8 +74,8 @@ export default function OffersHero() {
           }}
         />
 
-        <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[160px] md:pt-[210px] px-4 md:px-12 pb-6">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0B3150] mb-4 drop-shadow-sm tracking-tight">
+        <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[160px] md:pt-[210px] px-4 md:px-12 pb-2 md:pb-6">
+          <h1 className="hidden md:block text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0B3150] mb-4 drop-shadow-sm tracking-tight">
             Unlock{" "}
             <span className="text-[#FF7F3F] relative inline-block font-['Caveat',_cursive] text-4xl md:text-5xl lg:text-6xl tracking-wider px-1">
               exclusive deals
@@ -91,12 +91,12 @@ export default function OffersHero() {
             </span>{" "}
             with Shuv<span className="text-[#D94328]">Marg</span>
           </h1>
-          <p className="text-[#475569] text-lg md:text-xl font-medium mb-4">
+          <p className="hidden md:block text-[#475569] text-lg md:text-xl font-medium mb-4">
             Travel more, spend less. Discover the best promotions for your next bus journey.
           </p>
 
           {/* Breadcrumb Navigation */}
-          <div className="flex items-center gap-3 text-sm md:text-base font-medium text-[#475569]">
+          <div className="hidden md:flex items-center gap-3 text-sm md:text-base font-medium text-[#475569]">
             <Link href="/" className="hover:text-[#FF7F3F] transition-colors flex items-center gap-2">
               Home
             </Link>
@@ -139,7 +139,7 @@ export default function OffersHero() {
         >
           {/* ── Back Button — EXACT copy of SearchCard sticky bar pattern ── */}
           <div
-            className={`transition-all duration-300 mt-2 md:mt-0 flex shrink-0 ${isSticky ? "w-12 opacity-100" : "w-0 opacity-0 overflow-hidden"
+            className={`transition-all duration-300 mt-2 md:mt-0 hidden md:flex shrink-0 ${isSticky ? "w-12 opacity-100" : "w-0 opacity-0 overflow-hidden"
               }`}
           >
             <button

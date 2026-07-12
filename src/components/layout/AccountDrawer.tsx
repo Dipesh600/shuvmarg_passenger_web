@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { X, List, User, Wallet, Tag, Info, ChevronRight } from "lucide-react";
+import { X, List, User, Wallet, Tag, Info, HelpCircle, ChevronRight } from "lucide-react";
 
 interface AccountDrawerProps {
   isOpen: boolean;
@@ -113,6 +113,13 @@ export default function AccountDrawer({ isOpen, onClose }: AccountDrawerProps) {
                 <div className="flex items-center gap-4 text-[#0B3150] font-semibold text-[15px]">
                   <Tag className="w-5 h-5 text-neutral-500 group-hover:text-[#e14f3c] transition-colors" />
                   Offers
+                </div>
+                <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:text-[#0B3150] transition-colors" />
+              </Link>
+              <Link href="/help" onClick={onClose} className="flex items-center justify-between px-6 py-3.5 hover:bg-[#F8F1E3]/50 transition-colors group">
+                <div className="flex items-center gap-4 text-[#0B3150] font-semibold text-[15px]">
+                  <HelpCircle className="w-5 h-5 text-neutral-500 group-hover:text-[#e14f3c] transition-colors" />
+                  Help & Support
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:text-[#0B3150] transition-colors" />
               </Link>
