@@ -8,14 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function OffersSection() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -141,37 +133,23 @@ export default function OffersSection() {
         </div>
         
         {/* Horizontal Scroll of Offers */}
-        <div className="relative z-10 flex overflow-x-auto gap-6 md:gap-8 mb-10 pb-8 pt-4 px-4 -mx-4 snap-x snap-mandatory scrollbar-hide">
+        <div className="relative z-10 flex overflow-x-auto gap-6 md:gap-8 mb-10 pb-8 pt-4 px-4 -mx-4 scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
           
           {/* Card 1: Weekend Getaway */}
-          <motion.div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
+          <div 
+            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 hover:z-50 cursor-pointer"
             onClick={() => handleCopy("WEEKEND20")}
-            initial="idle"
-            whileInView={isMobile ? "hovered" : "idle"}
-            whileHover="hovered"
-            viewport={{ once: false, amount: 0.6 }}
           >
             {/* Orange background layer */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, scale: 1 },
-                hovered: { rotate: -3, scale: 1.02 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0"
+            <div 
+              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:-rotate-3 lg:group-hover:scale-[1.02]"
             >
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </motion.div>
+            </div>
             
             {/* Main white card */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, x: 0, y: 0 },
-                hovered: { rotate: -2, x: -6, y: -6 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden active:scale-[0.98]"
+            <div 
+              className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:-rotate-2 lg:group-hover:-translate-x-1.5 lg:group-hover:-translate-y-1.5"
             >
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
@@ -191,38 +169,24 @@ export default function OffersSection() {
                  </div>
                  <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
                </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Card 2: Travel More Save More */}
-          <motion.div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
+          <div 
+            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 hover:z-50 cursor-pointer"
             onClick={() => handleCopy("DELUXE10")}
-            initial="idle"
-            whileInView={isMobile ? "hovered" : "idle"}
-            whileHover="hovered"
-            viewport={{ once: false, amount: 0.6 }}
           >
             {/* Orange background layer */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, scale: 1 },
-                hovered: { rotate: 3, scale: 1.02 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0"
+            <div 
+              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:rotate-3 lg:group-hover:scale-[1.02]"
             >
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </motion.div>
+            </div>
             
             {/* Main white card */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, x: 0, y: 0 },
-                hovered: { rotate: 2, x: 6, y: -6 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="relative bg-white rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden active:scale-[0.98]"
+            <div 
+              className="relative bg-white rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:rotate-2 lg:group-hover:translate-x-1.5 lg:group-hover:-translate-y-1.5"
             >
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
@@ -253,38 +217,24 @@ export default function OffersSection() {
                  </div>
                  <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
                </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Card 3: 20% OFF */}
-          <motion.div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
+          <div 
+            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 hover:z-50 cursor-pointer"
             onClick={() => handleCopy("SAVE20")}
-            initial="idle"
-            whileInView={isMobile ? "hovered" : "idle"}
-            whileHover="hovered"
-            viewport={{ once: false, amount: 0.6 }}
           >
             {/* Orange background layer */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, scale: 1 },
-                hovered: { rotate: -2, scale: 1.02 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0"
+            <div 
+              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:-rotate-2 lg:group-hover:scale-[1.02]"
             >
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </motion.div>
+            </div>
             
             {/* Main white card */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, x: 0, y: 0 },
-                hovered: { rotate: -2, x: -6, y: -6 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="relative bg-white rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden active:scale-[0.98]"
+            <div 
+              className="relative bg-white rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:-rotate-2 lg:group-hover:-translate-x-1.5 lg:group-hover:-translate-y-1.5"
             >
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
@@ -309,38 +259,24 @@ export default function OffersSection() {
                  </div>
                  <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
                </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Card 4: New User Bonus */}
-          <motion.div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 snap-center hover:z-50 cursor-pointer"
+          <div 
+            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] shrink-0 hover:z-50 cursor-pointer"
             onClick={() => handleCopy("SHUVMARG50")}
-            initial="idle"
-            whileInView={isMobile ? "hovered" : "idle"}
-            whileHover="hovered"
-            viewport={{ once: false, amount: 0.6 }}
           >
             {/* Orange background layer */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, scale: 1 },
-                hovered: { rotate: 2, scale: 1.02 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0"
+            <div 
+              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:rotate-2 lg:group-hover:scale-[1.02]"
             >
               <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </motion.div>
+            </div>
             
             {/* Main white card */}
-            <motion.div 
-              variants={{
-                idle: { rotate: 0, x: 0, y: 0 },
-                hovered: { rotate: 2, x: 6, y: -6 }
-              }}
-              transition={{ duration: 0.3 }}
-              className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden active:scale-[0.98]"
+            <div 
+              className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:rotate-2 lg:group-hover:translate-x-1.5 lg:group-hover:-translate-y-1.5"
             >
                <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
                <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
@@ -359,8 +295,8 @@ export default function OffersSection() {
                  </div>
                  <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
                </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
         </div>
 
