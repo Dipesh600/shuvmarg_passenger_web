@@ -14,12 +14,7 @@ import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { CityPicker } from "./CityPicker";
 import { useRouter } from "next/navigation";
 
-const MapPinIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px] shrink-0">
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
+// MapPinIcon moved to CityPicker
 
 const CalendarIcon = ({ className = "w-[18px] h-[18px] shrink-0" }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -56,8 +51,6 @@ export default function SearchCard({
 }: SearchCardProps) {
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
-  const [isFromPickerOpen, setIsFromPickerOpen] = useState(false);
-  const [isToPickerOpen, setIsToPickerOpen] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
@@ -148,23 +141,14 @@ export default function SearchCard({
           />
 
           {/* From Field */}
-          <div className={`flex-1 w-full min-w-0 relative ${isFromPickerOpen ? 'z-[60]' : 'z-10'}`}>
+          <div className="flex-1 w-full min-w-0 relative z-[50]">
             <CityPicker
-              label="Origin"
-              selectedCity={from}
-              onSelect={setFrom}
-              isOpen={isFromPickerOpen}
-              onClose={() => setIsFromPickerOpen(false)}
-              onOpen={() => setIsFromPickerOpen(true)}
-            >
-              <div className="flex flex-col items-start justify-center px-4 py-2 cursor-pointer group text-left h-full w-full">
-                <span className="text-[12px] text-[#5D4B3B] font-bold mb-1 tracking-wider uppercase">From</span>
-                <div className="flex items-center gap-3 w-full text-[#0B3150] group-hover:text-[#D94328] transition-colors">
-                  <MapPinIcon />
-                  <span className="font-bold text-[16px] flex-1 truncate text-[#0B3150] group-hover:text-[#D94328] transition-colors text-left">{from}</span>
-                </div>
-              </div>
-            </CityPicker>
+              label="From"
+              placeholder="Origin city"
+              value={from}
+              onChange={setFrom}
+              excludeCity={to}
+            />
           </div>
 
           {/* Swap Button & Mobile Divider */}
@@ -184,23 +168,14 @@ export default function SearchCard({
           </div>
 
           {/* To Field */}
-          <div className={`flex-1 w-full min-w-0 relative ${isToPickerOpen ? 'z-[60]' : 'z-10'}`}>
+          <div className="flex-1 w-full min-w-0 relative z-[50]">
             <CityPicker
-              label="Destination"
-              selectedCity={to}
-              onSelect={setTo}
-              isOpen={isToPickerOpen}
-              onClose={() => setIsToPickerOpen(false)}
-              onOpen={() => setIsToPickerOpen(true)}
-            >
-              <div className="flex flex-col items-start justify-center px-4 py-2 cursor-pointer group text-left h-full w-full">
-                <span className="text-[12px] text-[#5D4B3B] font-bold mb-1 tracking-wider uppercase">To</span>
-                <div className="flex items-center gap-3 w-full text-[#0B3150] group-hover:text-[#D94328] transition-colors">
-                  <MapPinIcon />
-                  <span className="font-bold text-[16px] flex-1 truncate text-[#0B3150] group-hover:text-[#D94328] transition-colors text-left">{to}</span>
-                </div>
-              </div>
-            </CityPicker>
+              label="To"
+              placeholder="Destination city"
+              value={to}
+              onChange={setTo}
+              excludeCity={from}
+            />
           </div>
 
           {/* Divider */}
@@ -208,7 +183,7 @@ export default function SearchCard({
           <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-2 relative z-10"></div>
 
           {/* Date Field with Scroller */}
-          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-2 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-10'}`}>
+          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-2 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-[30]'}`}>
             {/* Calendar Icon (Opens Picker) */}
             <div className="shrink-0 mr-2">
               <CustomDatePicker
@@ -262,23 +237,14 @@ export default function SearchCard({
       ) : (
         <div className="flex flex-row items-center gap-2 w-full pb-1 md:pb-0 relative z-20">
           {/* From Field */}
-          <div className={`flex-1 w-full relative ${isFromPickerOpen ? 'z-[60]' : 'z-10'}`}>
+          <div className="flex-1 w-full relative z-[50]">
             <CityPicker
-              label="Origin"
-              selectedCity={from}
-              onSelect={setFrom}
-              isOpen={isFromPickerOpen}
-              onClose={() => setIsFromPickerOpen(false)}
-              onOpen={() => setIsFromPickerOpen(true)}
-            >
-              <div className="flex flex-col items-start justify-center px-4 py-1 cursor-pointer w-full h-full">
-                <span className="text-[11px] text-[#5D4B3B] font-bold mb-0.5 tracking-wider uppercase">From</span>
-                <div className="flex items-center gap-2 w-full text-[#0B3150] hover:text-[#D94328] transition-colors">
-                  <MapPinIcon />
-                  <span className="font-bold text-[15px] truncate">{from}</span>
-                </div>
-              </div>
-            </CityPicker>
+              label="From"
+              placeholder="Origin city"
+              value={from}
+              onChange={setFrom}
+              excludeCity={to}
+            />
           </div>
 
           {/* Swap Button */}
@@ -294,23 +260,14 @@ export default function SearchCard({
           </div>
 
           {/* To Field */}
-          <div className={`flex-1 w-full relative ${isToPickerOpen ? 'z-[60]' : 'z-10'}`}>
+          <div className="flex-1 w-full relative z-[50]">
             <CityPicker
-              label="Destination"
-              selectedCity={to}
-              onSelect={setTo}
-              isOpen={isToPickerOpen}
-              onClose={() => setIsToPickerOpen(false)}
-              onOpen={() => setIsToPickerOpen(true)}
-            >
-              <div className="flex flex-col items-start justify-center px-4 py-1 cursor-pointer w-full h-full">
-                <span className="text-[11px] text-[#5D4B3B] font-bold mb-0.5 tracking-wider uppercase">To</span>
-                <div className="flex items-center gap-2 w-full text-[#0B3150] hover:text-[#D94328] transition-colors">
-                  <MapPinIcon />
-                  <span className="font-bold text-[15px] truncate">{to}</span>
-                </div>
-              </div>
-            </CityPicker>
+              label="To"
+              placeholder="Destination city"
+              value={to}
+              onChange={setTo}
+              excludeCity={from}
+            />
           </div>
 
           {/* Divider */}
@@ -318,7 +275,7 @@ export default function SearchCard({
           <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-1"></div>
 
           {/* Date Field with Scroller */}
-          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-10'}`}>
+          <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isDatePickerOpen ? 'z-[60]' : 'z-[30]'}`}>
             {/* Calendar Icon (Opens Picker) */}
             <div className="shrink-0 mr-1">
               <CustomDatePicker
@@ -441,23 +398,14 @@ export default function SearchCard({
 
               <div className={`bg-white/60 backdrop-blur-md rounded-2xl border p-2 md:pr-6 md:pl-4 flex flex-row items-center gap-2 pb-1 md:pb-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] relative z-20 ${isSticky ? 'scale-[0.98] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/90 border-[#D94328]/30 border-b-[#D94328]/80' : 'scale-100 shadow-sm border-[#D8BFA6]'}`}>
                 {/* From Field */}
-                <div className={`flex-1 w-full relative ${isFromPickerOpen ? 'z-[60]' : 'z-10'}`}>
+                <div className="flex-1 w-full relative z-[50]">
                   <CityPicker
-                    label="Origin"
-                    selectedCity={from}
-                    onSelect={setFrom}
-                    isOpen={isFromPickerOpen}
-                    onClose={() => setIsFromPickerOpen(false)}
-                    onOpen={() => setIsFromPickerOpen(true)}
-                  >
-                    <div className="flex flex-col items-start justify-center px-4 py-1 cursor-pointer w-full h-full">
-                      <span className="text-[11px] text-[#5D4B3B] font-bold mb-0.5 tracking-wider uppercase">From</span>
-                      <div className="flex items-center gap-2 w-full text-[#0B3150] hover:text-[#D94328] transition-colors">
-                        <MapPinIcon />
-                        <span className="font-bold text-[15px] truncate">{from}</span>
-                      </div>
-                    </div>
-                  </CityPicker>
+                    label="From"
+                    placeholder="Origin city"
+                    value={from}
+                    onChange={setFrom}
+                    excludeCity={to}
+                  />
                 </div>
 
                 {/* Swap Button */}
@@ -473,23 +421,14 @@ export default function SearchCard({
                 </div>
 
                 {/* To Field */}
-                <div className={`flex-1 w-full relative ${isToPickerOpen ? 'z-[60]' : 'z-10'}`}>
+                <div className="flex-1 w-full relative z-[50]">
                   <CityPicker
-                    label="Destination"
-                    selectedCity={to}
-                    onSelect={setTo}
-                    isOpen={isToPickerOpen}
-                    onClose={() => setIsToPickerOpen(false)}
-                    onOpen={() => setIsToPickerOpen(true)}
-                  >
-                    <div className="flex flex-col items-start justify-center px-4 py-1 cursor-pointer w-full h-full">
-                      <span className="text-[11px] text-[#5D4B3B] font-bold mb-0.5 tracking-wider uppercase">To</span>
-                      <div className="flex items-center gap-2 w-full text-[#0B3150] hover:text-[#D94328] transition-colors">
-                        <MapPinIcon />
-                        <span className="font-bold text-[15px] truncate">{to}</span>
-                      </div>
-                    </div>
-                  </CityPicker>
+                    label="To"
+                    placeholder="Destination city"
+                    value={to}
+                    onChange={setTo}
+                    excludeCity={from}
+                  />
                 </div>
 
                 {/* Divider */}
@@ -497,7 +436,7 @@ export default function SearchCard({
                 <div className="md:hidden w-full h-[1px] bg-[#D8BFA6] my-1"></div>
 
                 {/* Date Field with Scroller */}
-                <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isStickyDatePickerOpen ? 'z-[60]' : 'z-10'}`}>
+                <div className={`flex-[2] w-full flex items-center justify-start px-2 py-1 relative min-w-0 ${isStickyDatePickerOpen ? 'z-[60]' : 'z-[30]'}`}>
                   {/* Calendar Icon (Opens Picker) */}
                   <div className="shrink-0 mr-1">
                     <CustomDatePicker
