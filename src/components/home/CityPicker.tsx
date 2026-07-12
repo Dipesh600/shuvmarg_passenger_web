@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── City Data ────────────────────────────────────────────────────────────────
@@ -64,9 +64,9 @@ interface CityPickerProps {
   placeholder: string;
   value: string;            // The selected city name (or "")
   onChange: (city: string) => void;
-  excludeCity?: string;     // Prevent same-city selection
-  shortCodeOnMobile?: boolean; // Show short code instead of full name on mobile
-  dropdownAlign?: "left" | "right"; // Alignment of dropdown on mobile
+  excludeCity?: string;
+  shortCodeOnMobile?: boolean;
+  dropdownAlign?: "left" | "right";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -79,49 +79,72 @@ export function CityPicker({
   shortCodeOnMobile = false,
   dropdownAlign = "left",
 }: CityPickerProps) {
-  const [query, setQuery]       = useState("");
-  const [isOpen, setIsOpen]     = useState(false);
+  // `inputText` is what the user sees and types into
+  // `isOpen` controls dropdown visibility
+  const [inputText, setInputText] = useState(value);
+  const [isOpen, setIsOpen]       = useState(false);
   const [sameError, setSameError] = useState(false);
 
   const inputRef     = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
+  // Keep inputText in sync when the parent resets value (e.g. swap button)
+  useEffect(() => {
+    if (!isOpen) {
+      setInputText(value);
+    }
+  }, [value, isOpen]);
+
+  // Close on outside click — if partial text was typed and nothing selected, clear it
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        // If user typed something but didn't pick a city, clear the field
+        const matched = CITY_REGISTRY.find(
+          (c) => c.name.toLowerCase() === inputText.trim().toLowerCase()
+        );
+        if (matched) {
+          onChange(matched.name);
+          setInputText(matched.name);
+        } else if (inputText !== value) {
+          onChange("");
+          setInputText("");
+        }
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [inputText, value, onChange]);
 
   const [useShortCode, setUseShortCode] = useState(false);
   useEffect(() => {
     if (!shortCodeOnMobile) return;
-    
-    // Fallback if ResizeObserver is not available or before it triggers
     setUseShortCode(window.innerWidth < 768);
-    
     if (!containerRef.current) return;
-
     const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        // If container width is larger than 140px, we have enough space for the full name
-        // (Kathmandu is the longest, ~110px. Add padding.)
+      for (const entry of entries) {
         setUseShortCode(entry.contentRect.width < 140);
       }
     });
-
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [shortCodeOnMobile]);
 
-  // Filter logic: popular when pristine (empty or same as value), search when typing new text
-  const isPristine = query === value || query.trim().length === 0;
-  
-  const displayList: City[] = !isPristine
+  // Has a valid city been committed?
+  const hasSelection = !!value;
+
+  // What text the input box shows
+  let displayText = inputText;
+  if (!isOpen && hasSelection && useShortCode) {
+    const city = CITY_REGISTRY.find((c) => c.name === value);
+    if (city) displayText = city.code;
+  }
+
+  // Dropdown list: show popular when empty, or filter by query
+  const query = inputText.trim();
+  const isSearching = isOpen && query.length > 0 && inputText !== value;
+  const displayList: City[] = isSearching
     ? CITY_REGISTRY.filter(
         (c) =>
           c.name.toLowerCase().includes(query.toLowerCase()) &&
@@ -129,30 +152,24 @@ export function CityPicker({
       )
     : POPULAR_CITIES.filter((c) => c.name !== excludeCity);
 
-  const showPopularLabel = isPristine;
-  const showNoResults    = !isPristine && displayList.length === 0;
+  const showPopularLabel = !isSearching;
+  const showNoResults    = isSearching && displayList.length === 0;
 
-  // What the input shows: when open → editable query; when closed → selected value
-  let inputValue = isOpen ? query : value;
-  if (!isOpen && useShortCode && value) {
-    const city = CITY_REGISTRY.find(c => c.name === value);
-    if (city) {
-      inputValue = city.code;
-    }
-  }
-
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setQuery(value);
+  const handleFocus = () => {
+    // Show current value text in the field so user can see/edit it
+    setInputText(value);
     setIsOpen(true);
-    // Select the text so typing immediately overwrites it
-    setTimeout(() => {
-      e.target.select();
-    }, 10);
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
+    const val = e.target.value;
+    setInputText(val);
     setSameError(false);
+
+    // As soon as the user modifies the text, decommit the selection
+    if (val !== value) {
+      onChange("");
+    }
   };
 
   const handleSelect = (city: City) => {
@@ -161,16 +178,19 @@ export function CityPicker({
       return;
     }
     onChange(city.name);
-    setQuery("");
+    setInputText(city.name);
     setIsOpen(false);
     setSameError(false);
   };
+
+  // Icon color: red only when a valid city is actually selected
+  const iconColor = hasSelection ? "#D94328" : "#0B3150";
 
   return (
     <div ref={containerRef} className="relative w-full h-full">
       {/* ── Input Field ── */}
       <div
-        className="flex flex-col justify-center px-4 py-2 h-full cursor-text w-full"
+        className="flex flex-col justify-center px-4 py-2 h-full cursor-text w-full group"
         onClick={() => inputRef.current?.focus()}
       >
         <span className="text-[11px] text-[#5D4B3B] font-bold mb-1 tracking-wider uppercase pointer-events-none text-left w-full block">
@@ -183,7 +203,7 @@ export function CityPicker({
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={isOpen || value ? "#D94328" : "#0B3150"}
+            stroke={iconColor}
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -196,7 +216,7 @@ export function CityPicker({
           <input
             ref={inputRef}
             type="text"
-            value={inputValue}
+            value={displayText}
             placeholder={placeholder}
             onChange={handleInput}
             onFocus={handleFocus}
@@ -209,11 +229,6 @@ export function CityPicker({
         {sameError && (
           <p className="text-[11px] font-semibold text-red-500 mt-1">
             Origin and destination cannot be the same.
-          </p>
-        )}
-        {isOpen && query.length >= 1 && !sameError && (
-          <p className="text-[11px] font-semibold text-amber-600 mt-1">
-            Select a city from the list below.
           </p>
         )}
       </div>
@@ -252,7 +267,7 @@ export function CityPicker({
                       onClick={() => handleSelect(city)}
                       className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
                         city.name === value
-                          ? "bg-[#D94328]/8 text-[#D94328]"
+                          ? "bg-[#D94328]/[0.08] text-[#D94328]"
                           : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
                       }`}
                     >
@@ -270,8 +285,6 @@ export function CityPicker({
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
-
