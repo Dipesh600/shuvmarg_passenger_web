@@ -1,65 +1,91 @@
 import { useState, useEffect, useCallback } from "react";
 import { SeatConfig } from "@/components/home/seat-selection/PassengerSeatMap";
+import { request } from "@/lib/api";
 
 export interface TripSeatsData {
   seatConfig: SeatConfig;
   bookedSeatIds: string[];
 }
 
-// Generate a dummy seat layout based on the ShuvMarg requirements
-function generateMockSeatConfig(): SeatConfig {
-  const rows = [];
-  for (let i = 0; i < 9; i++) {
-    rows.push({
-      cells: [
-        { cellType: "SEAT", seatType: "STANDARD", seatLabel: `A${i+1}`, seatId: `A${i+1}` },
-        { cellType: "SEAT", seatType: "STANDARD", seatLabel: `B${i+1}`, seatId: `B${i+1}` },
-        { cellType: "AISLE", seatType: "STANDARD", seatLabel: null, seatId: null },
-        { cellType: "SEAT", seatType: "STANDARD", seatLabel: `C${i+1}`, seatId: `C${i+1}` },
-        { cellType: "SEAT", seatType: "STANDARD", seatLabel: `D${i+1}`, seatId: `D${i+1}` },
-      ],
-    });
-  }
-  
-  // Last row has 5 seats across
-  rows.push({
-    cells: [
-      { cellType: "SEAT", seatType: "STANDARD", seatLabel: `A10`, seatId: `A10` },
-      { cellType: "SEAT", seatType: "STANDARD", seatLabel: `B10`, seatId: `B10` },
-      { cellType: "SEAT", seatType: "STANDARD", seatLabel: `C10`, seatId: `C10` },
-      { cellType: "SEAT", seatType: "STANDARD", seatLabel: `D10`, seatId: `D10` },
-      { cellType: "SEAT", seatType: "STANDARD", seatLabel: `E10`, seatId: `E10` },
-    ],
-  });
+interface RawSeatEntry {
+  seatNo: string;
+  booked: boolean;
+  blockedFor?: string;
+}
 
-  return {
-    busShape: "2X2",
-    floors: [{ floorLevel: 1, floorName: "Lower Deck", rows: rows as any }],
+interface GetSeatsResponse {
+  status: boolean;
+  message: string;
+  data: {
+    seata?: RawSeatEntry[];
+    seatb?: RawSeatEntry[];
+    seatc?: RawSeatEntry[];
+    seatConfig?: SeatConfig | null;
   };
 }
 
-const mockSeatConfig = generateMockSeatConfig();
-const mockBookedSeatIds = ["B2", "C3", "A7", "D8", "B10"];
+/**
+ * Collects booked seat IDs from the raw seat arrays returned by the backend.
+ * The backend stores seats in three arrays (seata, seatb, seatc) based on the
+ * bus layout. We merge and filter to extract only booked seat numbers.
+ */
+function extractBookedSeatIds(data: GetSeatsResponse["data"]): string[] {
+  const allSeats = [
+    ...(data.seata ?? []),
+    ...(data.seatb ?? []),
+    ...(data.seatc ?? []),
+  ];
+  return allSeats
+    .filter((s) => s.booked || s.blockedFor)
+    .map((s) => s.seatNo);
+}
 
 export function useTripSeats(tripId: string) {
   const [data, setData] = useState<TripSeatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadSeats = useCallback(() => {
+  const loadSeats = useCallback(async () => {
     if (!tripId) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
-    // Simulate network delay
-    setTimeout(() => {
-      setData({
-        seatConfig: mockSeatConfig,
-        bookedSeatIds: mockBookedSeatIds,
+
+    try {
+      const response = await request<GetSeatsResponse>("/api/ticket/getSeats", {
+        method: "POST",
+        body: { tripId },
       });
+
+      const seatConfig = response.data?.seatConfig ?? null;
+      const bookedSeatIds = extractBookedSeatIds(response.data ?? {});
+
+      if (!seatConfig) {
+        // Trip exists but has no seat template — surface a clear message
+        setError("Seat layout is not configured for this trip.");
+        setData(null);
+      } else {
+        setData({ seatConfig, bookedSeatIds });
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unable to load seats.";
+      // 401 / 403 → user needs to be logged in to see seats
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "statusCode" in err &&
+        ((err as { statusCode: number }).statusCode === 401 ||
+          (err as { statusCode: number }).statusCode === 403)
+      ) {
+        setError("Please log in to view seat availability.");
+      } else {
+        setError(message);
+      }
+      setData(null);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   }, [tripId]);
 
   useEffect(() => {

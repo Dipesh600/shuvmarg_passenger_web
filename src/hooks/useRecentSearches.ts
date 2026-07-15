@@ -10,7 +10,7 @@ export interface RecentSearch {
 }
 
 const STORAGE_KEY = "shuvmarg_recent_searches";
-const MAX_SEARCHES = 6; // Keep a bit more history, say 6.
+const MAX_SEARCHES = 5;
 
 export function useRecentSearches() {
   const [searches, setSearches] = useState<RecentSearch[]>([]);
@@ -18,7 +18,6 @@ export function useRecentSearches() {
 
   // Load from local storage on mount
   useEffect(() => {
-    setMounted(true);
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -27,6 +26,9 @@ export function useRecentSearches() {
     } catch (error) {
       console.error("Failed to parse recent searches from local storage", error);
     }
+    // Set mounted after state has been hydrated to avoid hydration mismatch
+    const timeout = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timeout);
   }, []);
 
   // Listen to custom event for syncing across components in the same window

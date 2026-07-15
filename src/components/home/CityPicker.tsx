@@ -1,63 +1,98 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// ─── City Data ────────────────────────────────────────────────────────────────
-const POPULAR_CITIES = [
-  { name: "Kathmandu", code: "KTM" },
-  { name: "Pokhara",   code: "PKR" },
-  { name: "Chitwan",   code: "CTW" },
-  { name: "Lumbini",   code: "LUM" },
-  { name: "Biratnagar",code: "BIR" },
-  { name: "Dharan",    code: "DHR" },
-  { name: "Butwal",    code: "BTL" },
-  { name: "Nepalgunj", code: "NPG" },
-  { name: "Janakpur",  code: "JNK" },
-  { name: "Dhangadhi", code: "DHD" },
-];
-
-const ALL_CITIES = [
-  ...POPULAR_CITIES,
-  { name: "Bhairahawa",    code: "BHR" },
-  { name: "Hetauda",       code: "HET" },
-  { name: "Ilam",          code: "ILM" },
-  { name: "Birtamod",      code: "BTM" },
-  { name: "Damak",         code: "DMK" },
-  { name: "Itahari",       code: "ITH" },
-  { name: "Kakadvitta",    code: "KKV" },
-  { name: "Lahan",         code: "LHN" },
-  { name: "Rajbiraj",      code: "RJB" },
-  { name: "Siraha",        code: "SRH" },
-  { name: "Tulsipur",      code: "TLS" },
-  { name: "Ghorahi",       code: "GHR" },
-  { name: "Kohalpur",      code: "KHP" },
-  { name: "Surkhet",       code: "SKT" },
-  { name: "Mahendranagar", code: "MHN" },
-  { name: "Tikapur",       code: "TKP" },
-  { name: "Sauraha",       code: "SAU" },
-  { name: "Besishahar",    code: "BSH" },
-  { name: "Baglung",       code: "BGL" },
-  { name: "Beni",          code: "BNI" },
-  { name: "Jomsom",        code: "JOM" },
-  { name: "Syangja",       code: "SYJ" },
-  { name: "Palpa",         code: "PLP" },
-  { name: "Sindhuli",      code: "SDL" },
-  { name: "Charikot",      code: "CHK" },
-  { name: "Manthali",      code: "MTL" },
-  { name: "Birgunj",       code: "BRG" },
-];
-
-// Deduplicate by name
-const CITY_REGISTRY = Array.from(
-  new Map(ALL_CITIES.map((c) => [c.name, c])).values()
-).sort((a, b) => a.name.localeCompare(b.name));
+import { request } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface City {
+
+interface Stop {
+  id: string;
   name: string;
   code: string;
+  type: "CITY" | "TOWN" | "JUNCTION" | string;
+  state: string | null;
 }
+
+interface StopsResponse {
+  success: boolean;
+  data: Stop[];
+}
+
+// ─── Cache ────────────────────────────────────────────────────────────────────
+// Popular stops are cached in localStorage for 24 h to avoid repeat network calls.
+// This matches the backend recommendation in stopSearchController.js.
+
+const POPULAR_CACHE_KEY = "shuvmarg_popular_stops_v1";
+const POPULAR_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in ms
+
+function readPopularCache(): Stop[] | null {
+  try {
+    const raw = localStorage.getItem(POPULAR_CACHE_KEY);
+    if (!raw) return null;
+    const { stops, cachedAt } = JSON.parse(raw);
+    if (Date.now() - cachedAt > POPULAR_CACHE_TTL) return null;
+    return stops;
+  } catch {
+    return null;
+  }
+}
+
+function writePopularCache(stops: Stop[]) {
+  try {
+    localStorage.setItem(
+      POPULAR_CACHE_KEY,
+      JSON.stringify({ stops, cachedAt: Date.now() })
+    );
+  } catch {
+    // Ignore quota errors
+  }
+}
+
+// ─── API helpers ─────────────────────────────────────────────────────────────
+
+async function fetchPopularStops(): Promise<Stop[]> {
+  const cached = readPopularCache();
+  if (cached) return cached;
+
+  try {
+    const res = await request<StopsResponse>("/api/public/stops/popular?limit=10", {
+      method: "GET",
+      skipAuth: true,
+    });
+    const stops = res.data ?? [];
+    writePopularCache(stops);
+    return stops;
+  } catch {
+    return [];
+  }
+}
+
+async function searchStops(query: string): Promise<Stop[]> {
+  if (query.length < 2) return [];
+  try {
+    const res = await request<StopsResponse>(
+      `/api/public/stops/search?q=${encodeURIComponent(query)}&limit=8`,
+      { method: "GET", skipAuth: true }
+    );
+    return res.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** Fire-and-forget popularity tracking — backend responds 204 */
+function trackStopSelection(stopId: string) {
+  request("/api/public/stops/select", {
+    method: "POST",
+    body: { stopId },
+    skipAuth: true,
+  }).catch(() => {
+    // Non-blocking — ignore failures silently
+  });
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 interface CityPickerProps {
   label: string;
@@ -69,7 +104,49 @@ interface CityPickerProps {
   dropdownAlign?: "left" | "right";
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function StopRow({
+  stop,
+  isSelected,
+  onSelect,
+}: {
+  stop: Stop;
+  isSelected: boolean;
+  onSelect: (stop: Stop) => void;
+}) {
+  return (
+    <li>
+      <button
+        onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
+        onClick={() => onSelect(stop)}
+        className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
+          isSelected
+            ? "bg-[#D94328]/[0.08] text-[#D94328]"
+            : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
+        }`}
+      >
+        <span
+          className={`text-[15px] font-semibold transition-colors ${
+            isSelected
+              ? "text-[#D94328]"
+              : "group-hover/item:text-[#D94328]"
+          }`}
+        >
+          {stop.name}
+        </span>
+        <span
+          className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${
+            isSelected
+              ? "text-[#D94328]/60"
+              : "text-neutral-400 group-hover/item:text-[#D94328]/60"
+          }`}
+        >
+          {stop.code}
+        </span>
+      </button>
+    </li>
+  );
+}
+
 export function CityPicker({
   label,
   placeholder,
@@ -79,35 +156,45 @@ export function CityPicker({
   shortCodeOnMobile = false,
   dropdownAlign = "left",
 }: CityPickerProps) {
-  // `inputText` is what the user sees and types into
-  // `isOpen` controls dropdown visibility
   const [inputText, setInputText] = useState(value);
-  const [isOpen, setIsOpen]       = useState(false);
-  const [sameError, setSameError] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const inputRef     = useRef<HTMLInputElement>(null);
+  // Popular stops — loaded once on mount, cached 24 h
+  const [popularStops, setPopularStops] = useState<Stop[]>([]);
+  const [popularLoading, setPopularLoading] = useState(false);
+
+  // Search results — updated as user types
+  const [searchResults, setSearchResults] = useState<Stop[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Keep inputText in sync when the parent resets value (e.g. swap button)
+  // ── Load popular stops once ──────────────────────────────────────────────
   useEffect(() => {
-    if (!isOpen) {
-      setInputText(value);
-    }
+    setPopularLoading(true);
+    fetchPopularStops().then((stops) => {
+      setPopularStops(stops);
+      setPopularLoading(false);
+    });
+  }, []);
+
+  // ── Keep inputText in sync when value changes (e.g. swap button) ─────────
+  useEffect(() => {
+    if (!isOpen) setInputText(value);
   }, [value, isOpen]);
 
-  // Close on outside click — if partial text was typed and nothing selected, clear it
+  // ── Close on outside click ────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
-        // If user typed something but didn't pick a city, clear the field
-        const matched = CITY_REGISTRY.find(
-          (c) => c.name.toLowerCase() === inputText.trim().toLowerCase()
-        );
-        if (matched) {
-          onChange(matched.name);
-          setInputText(matched.name);
-        } else if (inputText !== value) {
+        // If user typed but didn't pick a stop, clear the field
+        if (inputText !== value) {
           onChange("");
           setInputText("");
         }
@@ -117,6 +204,7 @@ export function CityPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [inputText, value, onChange]);
 
+  // ── Short code on narrow containers ──────────────────────────────────────
   const [useShortCode, setUseShortCode] = useState(false);
   useEffect(() => {
     if (!shortCodeOnMobile) return;
@@ -131,63 +219,77 @@ export function CityPicker({
     return () => observer.disconnect();
   }, [shortCodeOnMobile]);
 
-  // Has a valid city been committed?
+  // ── Derive which stop is selected ─────────────────────────────────────────
   const hasSelection = !!value;
 
-  // What text the input box shows
   let displayText = inputText;
   if (!isOpen && hasSelection && useShortCode) {
-    const city = CITY_REGISTRY.find((c) => c.name === value);
-    if (city) displayText = city.code;
+    const selected = popularStops.find((s) => s.name === value) ??
+      searchResults.find((s) => s.name === value);
+    if (selected) displayText = selected.code;
   }
 
-  // Dropdown list: filter by whatever is typed, or show popular when empty
-  const query = inputText.trim();
-  const isFiltering = isOpen && query.length > 0;
-  const displayList: City[] = isFiltering
-    ? CITY_REGISTRY.filter(
-        (c) =>
-          c.name.toLowerCase().includes(query.toLowerCase()) &&
-          c.name !== excludeCity
-      )
-    : POPULAR_CITIES.filter((c) => c.name !== excludeCity);
+  // ── Debounced search ──────────────────────────────────────────────────────
+  const handleInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      setInputText(val);
+      onChange(""); // Decommit any previous selection
+      if (!isOpen) setIsOpen(true);
 
-  const showPopularLabel = !isFiltering;
-  const showNoResults    = isFiltering && displayList.length === 0;
+      // Clear previous debounce
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      if (val.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setSearchLoading(true);
+      debounceRef.current = setTimeout(async () => {
+        const results = await searchStops(val.trim());
+        setSearchResults(results);
+        setSearchLoading(false);
+      }, 250);
+    },
+    [isOpen, onChange]
+  );
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    // Show current value text in the field so user can see/edit it
     setInputText(value);
     setIsOpen(true);
-    // Auto-select text so they can easily delete or type over it
     const target = e.target;
-    setTimeout(() => {
-      target.select();
-    }, 10);
-  };
+    setTimeout(() => target.select(), 10);
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setInputText(val);
-    setSameError(false);
-    // Open dropdown immediately while typing
-    if (!isOpen) setIsOpen(true);
-    // Decommit selection as soon as text changes
-    onChange("");
-  };
-
-  const handleSelect = (city: City) => {
-    if (excludeCity && city.name === excludeCity) {
-      setSameError(true);
-      return;
+    // Smoothly scroll the container into view on mobile so the dropdown isn't hidden by the keyboard
+    if (window.innerWidth < 768 && containerRef.current) {
+      setTimeout(() => {
+        containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300); // Small delay to allow the keyboard to finish popping up
     }
-    onChange(city.name);
-    setInputText(city.name);
-    setIsOpen(false);
-    setSameError(false);
   };
 
-  // Icon color: red only when a valid city is actually selected
+  const handleSelect = (stop: Stop) => {
+    if (excludeCity && stop.name === excludeCity) return;
+    onChange(stop.name);
+    setInputText(stop.name);
+    setIsOpen(false);
+    setSearchResults([]);
+    trackStopSelection(stop.id);
+  };
+
+  // ── Determine what to display in the dropdown ─────────────────────────────
+  const query = inputText.trim();
+  const isFiltering = isOpen && query.length >= 2;
+  const isLoadingDropdown = isFiltering ? searchLoading : popularLoading;
+
+  const displayList = isFiltering
+    ? searchResults.filter((s) => s.name !== excludeCity)
+    : popularStops.filter((s) => s.name !== excludeCity);
+
+  const showPopularLabel = !isFiltering && displayList.length > 0;
+  const showNoResults = isFiltering && !searchLoading && displayList.length === 0;
+
   const iconColor = hasSelection ? "#D94328" : "#0B3150";
 
   return (
@@ -228,16 +330,9 @@ export function CityPicker({
             className="flex-1 min-w-0 bg-transparent text-[15px] font-bold text-[#0B3150] outline-none placeholder:text-[#0B3150]/40 placeholder:font-medium"
           />
         </div>
-
-        {/* Validation messages */}
-        {sameError && (
-          <p className="text-[11px] font-semibold text-red-500 mt-1">
-            Origin and destination cannot be the same.
-          </p>
-        )}
       </div>
 
-      {/* ── Dropdown List ── */}
+      {/* ── Dropdown ── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -245,46 +340,60 @@ export function CityPicker({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.15 }}
-            className={`absolute top-[110%] ${dropdownAlign === "right" ? "right-0 md:left-0 md:right-auto" : "left-0"} z-[200] w-[calc(100vw-32px)] max-w-[320px] md:w-[300px] md:max-w-none bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden`}
+            className={`absolute top-[110%] ${
+              dropdownAlign === "right"
+                ? "right-0 md:left-0 md:right-auto"
+                : "left-0"
+            } z-[200] w-[calc(100vw-32px)] max-w-[320px] md:w-[300px] md:max-w-none bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden`}
           >
+            {/* Section label */}
             {showPopularLabel && (
               <div className="px-4 pt-3 pb-1.5">
                 <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
-                  Popular Cities
+                  Popular Stops
                 </span>
               </div>
             )}
 
-            {showNoResults && (
+            {/* Loading skeleton */}
+            {isLoadingDropdown && (
+              <div className="px-4 py-3 space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between animate-pulse">
+                    <div className="h-4 bg-neutral-100 rounded w-2/3" />
+                    <div className="h-3 bg-neutral-100 rounded w-8" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* No results */}
+            {showNoResults && !isLoadingDropdown && (
               <div className="px-4 py-6 text-center">
-                <p className="text-[14px] font-bold text-neutral-700">No cities found</p>
+                <p className="text-[14px] font-bold text-neutral-700">No stops found</p>
                 <p className="text-[12px] text-neutral-400 mt-1">Try a different spelling.</p>
               </div>
             )}
 
-            {!showNoResults && displayList.length > 0 && (
+            {/* Stop list */}
+            {!isLoadingDropdown && displayList.length > 0 && (
               <ul className="py-1.5 max-h-[280px] overflow-y-auto">
-                {displayList.map((city) => (
-                  <li key={city.name}>
-                    <button
-                      onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
-                      onClick={() => handleSelect(city)}
-                      className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
-                        city.name === value
-                          ? "bg-[#D94328]/[0.08] text-[#D94328]"
-                          : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
-                      }`}
-                    >
-                      <span className={`text-[15px] font-semibold transition-colors ${city.name === value ? "text-[#D94328]" : "group-hover/item:text-[#D94328]"}`}>
-                        {city.name}
-                      </span>
-                      <span className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${city.name === value ? "text-[#D94328]/60" : "text-neutral-400 group-hover/item:text-[#D94328]/60"}`}>
-                        {city.code}
-                      </span>
-                    </button>
-                  </li>
+                {displayList.map((stop) => (
+                  <StopRow
+                    key={stop.id}
+                    stop={stop}
+                    isSelected={stop.name === value}
+                    onSelect={handleSelect}
+                  />
                 ))}
               </ul>
+            )}
+
+            {/* Empty popular (DB not seeded yet) */}
+            {!isFiltering && !isLoadingDropdown && displayList.length === 0 && (
+              <div className="px-4 py-6 text-center">
+                <p className="text-[13px] text-neutral-400">Type a city name to search.</p>
+              </div>
             )}
           </motion.div>
         )}

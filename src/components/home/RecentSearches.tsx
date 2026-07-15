@@ -32,8 +32,8 @@ export default function RecentSearches() {
       <div className="flex items-center gap-2">
         <h3 className="text-[#0B3150] font-bold text-base md:text-lg">Last Visited</h3>
       </div>
-      <div className="flex overflow-x-auto overflow-y-hidden md:flex-wrap gap-3 pb-2 md:pb-0 w-full snap-x snap-mandatory [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {recentSearches.map((search, idx) => (
+      <div className="flex overflow-x-auto overflow-y-hidden gap-3 pb-2 md:pb-0 w-full snap-x snap-mandatory [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {recentSearches.slice(0, 4).map((search, idx) => (
           <button
             key={idx}
             onClick={() => {

@@ -1,8 +1,10 @@
 import React from "react";
 
 interface Point {
+  id?: string;
   name: string;
   time?: string;
+  address?: string;
 }
 
 interface BoardingPointsTabProps {
@@ -52,9 +54,11 @@ export function BoardingPointsTab({
                     <h4 className="text-[14px] md:text-[15px] font-bold text-neutral-900 mb-0.5 md:mb-1 truncate">
                       {bp.name}
                     </h4>
-                    <p className="text-[12px] text-neutral-500 line-clamp-2 leading-relaxed">
-                      Inside ISBT Kashmere Gate, Booking Counter No. 28, Exit from Gate 7 & 8
-                    </p>
+                    {bp.address && (
+                      <p className="text-[12px] text-neutral-500 line-clamp-2 leading-relaxed">
+                        {bp.address}
+                      </p>
+                    )}
                   </div>
                   <div className="flex-shrink-0 pt-0.5 pl-2">
                     <div
@@ -103,9 +107,11 @@ export function BoardingPointsTab({
                     <h4 className="text-[14px] md:text-[15px] font-bold text-neutral-900 mb-0.5 md:mb-1 truncate">
                       {dp.name}
                     </h4>
-                    <p className="text-[12px] text-neutral-500 line-clamp-2 leading-relaxed">
-                      Sector 118 Sahibzada Ajit Singh Nagar, Opp. Indian Oil Pump
-                    </p>
+                    {dp.address && (
+                      <p className="text-[12px] text-neutral-500 line-clamp-2 leading-relaxed">
+                        {dp.address}
+                      </p>
+                    )}
                   </div>
                   <div className="flex-shrink-0 pt-0.5 pl-2">
                     <div

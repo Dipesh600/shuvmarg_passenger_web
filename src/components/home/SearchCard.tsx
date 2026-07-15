@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { TripResult } from "@/types/search";
 import { CustomDatePicker } from "./CustomDatePicker";
-import { format, isToday, addDays, isSameDay, differenceInDays } from "date-fns";
+import { format, addDays, isSameDay, differenceInDays } from "date-fns";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { CityPicker } from "./CityPicker";
 import { useRouter } from "next/navigation";
+import { triggerHaptic } from "@/utils/haptics";
 
 // MapPinIcon moved to CityPicker
 
@@ -52,8 +52,12 @@ export default function SearchCard({
   
   // Navigation
   const handleSearchClick = () => {
+    triggerHaptic('medium');
     if (from && to && !sameError) {
-      router.push(`/routes/${from.toLowerCase()}-to-${to.toLowerCase()}`);
+      const dateStr = format(date, "yyyy-MM-dd");
+      router.push(
+        `/routes/${from.toLowerCase()}-to-${to.toLowerCase()}?date=${dateStr}`
+      );
       // Delay saving the search so the UI doesn't update until we navigate away
       setTimeout(() => {
         addSearch({
@@ -132,6 +136,7 @@ export default function SearchCard({
   }, []);
 
   const handleSwap = () => {
+    triggerHaptic('light');
     setRotation(prev => prev + 180);
     setFrom(to);
     setTo(from);
@@ -187,7 +192,7 @@ export default function SearchCard({
           <div className="w-full md:w-auto h-[1px] md:h-auto bg-[#D8BFA6] md:bg-transparent my-1 md:my-0 relative z-20 flex items-center justify-end md:justify-center md:shrink-0 pr-6 md:pr-0">
             <button
               onClick={handleSwap}
-              className="absolute md:relative flex items-center justify-center w-8 h-8 rounded-full border border-[#C4A07A] bg-[#E8D2B0] hover:bg-[#DBBD95] transition-colors shadow-[0_2px_6px_rgba(100,60,20,0.15)] text-[#7A4A1E]"
+              className="absolute md:relative flex items-center justify-center w-8 h-8 rounded-full border border-[#C4A07A] bg-[#E8D2B0] hover:bg-[#DBBD95] transition-all active:scale-90 shadow-[0_2px_6px_rgba(100,60,20,0.15)] text-[#7A4A1E]"
               title="Swap origin and destination"
             >
               <span
@@ -239,9 +244,12 @@ export default function SearchCard({
                 return (
                   <button
                     key={i}
-                    onClick={() => setDate(d)}
+                    onClick={() => {
+                      triggerHaptic('light');
+                      setDate(d);
+                    }}
                     className={`
-                      shrink-0 w-[54px] h-[64px] rounded-xl flex flex-col items-center justify-center transition-all border
+                      shrink-0 w-[54px] h-[64px] rounded-xl flex flex-col items-center justify-center transition-all active:scale-95 border
                       ${isSelected 
                         ? "bg-[#D94328] border-[#D94328] text-white shadow-md transform scale-[1.03]" 
                         : "bg-white/50 border-[#D8BFA6]/40 text-[#0B3150] hover:bg-[#E8D2B0]/40"}
@@ -258,7 +266,7 @@ export default function SearchCard({
           {/* Search Button */}
           <button
             onClick={handleSearchClick}
-            className="h-[56px] px-8 bg-[#D94328] hover:bg-[#C93522] text-[#FFF6E8] font-bold text-[16px] rounded-xl flex items-center justify-center shadow-[0_4px_16px_rgba(217,67,40,0.4)] transition-all w-full md:w-auto md:ml-4 md:mr-2 shrink-0 relative z-10"
+            className="h-[56px] px-8 bg-[#D94328] hover:bg-[#C93522] text-[#FFF6E8] font-bold text-[16px] rounded-xl flex items-center justify-center shadow-[0_4px_16px_rgba(217,67,40,0.4)] transition-all active:scale-[0.97] w-full md:w-auto md:ml-4 md:mr-2 shrink-0 relative z-10"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E")`
             }}
@@ -287,7 +295,7 @@ export default function SearchCard({
             <div className="flex-shrink-0 mx-0 md:mx-1 flex items-center justify-center">
               <button
                 onClick={handleSwap}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E8D2B0] text-[#7A4A1E] hover:bg-[#DBBD95] transition-colors shadow-sm"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E8D2B0] text-[#7A4A1E] hover:bg-[#DBBD95] transition-all active:scale-90 shadow-sm"
               >
                 <span style={{ transform: `rotate(${rotation}deg)` }} className="transition-transform duration-300">
                   <SwapIcon />
@@ -338,9 +346,12 @@ export default function SearchCard({
                   return (
                     <button
                       key={i}
-                      onClick={() => setDate(d)}
+                      onClick={() => {
+                        triggerHaptic('light');
+                        setDate(d);
+                      }}
                       className={`
-                        shrink-0 w-[44px] h-[50px] rounded-lg flex flex-col items-center justify-center transition-all border
+                        shrink-0 w-[44px] h-[50px] rounded-lg flex flex-col items-center justify-center transition-all active:scale-95 border
                         ${isSelected 
                           ? "bg-[#D94328] border-[#D94328] text-white shadow-sm transform scale-[1.02]" 
                           : "bg-white/50 border-[#D8BFA6]/40 text-[#0B3150] hover:bg-[#E8D2B0]/40"}
@@ -358,7 +369,7 @@ export default function SearchCard({
             {/* Search Button */}
             <button 
               onClick={handleSearchClick}
-              className="h-[44px] w-[72px] md:w-auto px-0 md:px-6 lg:px-8 bg-[#D94328] text-white rounded-xl text-[15px] font-bold hover:bg-[#C93522] transition-colors shadow-[0_2px_8px_rgba(217,67,40,0.3)] shrink-0 ml-2 flex items-center justify-center"
+              className="h-[44px] w-[72px] md:w-auto px-0 md:px-6 lg:px-8 bg-[#D94328] text-white rounded-xl text-[15px] font-bold hover:bg-[#C93522] transition-all active:scale-[0.96] shadow-[0_2px_8px_rgba(217,67,40,0.3)] shrink-0 ml-2 flex items-center justify-center"
             >
               <span className="hidden lg:inline">Search</span>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 lg:hidden"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
