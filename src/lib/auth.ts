@@ -58,7 +58,7 @@ export interface LoginResponse {
   message: string;
   user?: Record<string, unknown>;
   accessToken?: string;
-  refreshToken?: string;
+  // refreshToken is intentionally absent — delivered via httpOnly cookie only (FINDING-06)
   activeRole?: string;
   forcePasswordChange?: boolean;
   tempToken?: string;
@@ -67,7 +67,7 @@ export interface LoginResponse {
 export interface RefreshResponse {
   success: boolean;
   accessToken: string;
-  refreshToken: string;
+  // refreshToken is intentionally absent — delivered via httpOnly cookie only (FINDING-06)
 }
 
 // ── Signup — 3-step OTP registration ─────────────────────────────────────────
