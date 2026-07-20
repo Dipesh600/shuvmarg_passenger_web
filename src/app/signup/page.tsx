@@ -326,7 +326,8 @@ export default function SignupPage() {
             alt="Signup Background"
             className="absolute inset-0 w-full h-full object-cover opacity-90"
           />
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
           {/* Desktop back button */}
           <div className="relative z-10 w-full">
@@ -341,7 +342,7 @@ export default function SignupPage() {
             </button>
           </div>
 
-          <div className="relative z-10 w-full mt-auto">
+          <div className="relative z-10 w-full mt-auto drop-shadow-lg">
             <h2 className="text-white font-display font-light text-4xl xl:text-5xl leading-tight mb-2">
               Book Any Seat.<br />
               <span className="font-semibold">Travel With Trust.</span>
@@ -366,14 +367,14 @@ export default function SignupPage() {
               </svg>
               Back
             </button>
-            <Link href="/" className="font-display font-bold text-xl tracking-tight text-[#1A1A1A]">
+            <Link href="/" className="font-display font-bold text-2xl tracking-tight text-[#1A1A1A]">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </div>
 
           {/* Desktop Logo */}
           <header className="hidden lg:flex justify-end mb-12 w-full">
-            <Link href="/" className="font-display font-bold text-2xl tracking-tight text-[#1A1A1A]">
+            <Link href="/" className="font-display font-bold text-3xl tracking-tight text-[#1A1A1A]">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </header>

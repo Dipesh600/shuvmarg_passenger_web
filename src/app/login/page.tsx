@@ -44,7 +44,12 @@ function LoginForm() {
 
   const justRegistered = searchParams.get("registered") === "1";
   const passwordReset = searchParams.get("passwordReset") === "1";
-  const returnTo = searchParams.get("returnTo") || "/";
+  let returnTo = searchParams.get("returnTo") || "/";
+
+  // Prevent open redirect
+  if (!returnTo.startsWith("/") || returnTo.startsWith("//")) {
+    returnTo = "/";
+  }
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -95,8 +100,9 @@ function LoginForm() {
             alt="Login Background" 
             className="absolute inset-0 w-full h-full object-cover opacity-90"
           />
-          {/* Dark overlay for text readability if needed */}
-          <div className="absolute inset-0 bg-black/30" />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
           
           <div className="relative z-10 w-full">
               <button 
@@ -110,7 +116,7 @@ function LoginForm() {
               </button>
           </div>
           
-          <div className="relative z-10 w-full mt-auto">
+          <div className="relative z-10 w-full mt-auto drop-shadow-lg">
               <h2 className="text-white font-display font-light text-4xl xl:text-5xl leading-tight mb-2">
                 Book Any Seat.<br />
                 <span className="font-bold text-[#D94328]">Travel Confidently.</span>
@@ -136,10 +142,10 @@ function LoginForm() {
         </div>
 
         {/* Right Side (Form) */}
-        <div className="w-full lg:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col relative bg-white">
+        <div className="flex-1 flex flex-col px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12 bg-white overflow-y-auto">
           
           {/* Mobile Header (Hidden on lg) */}
-          <header className="flex lg:hidden items-center justify-between mb-10 w-full">
+          <header className="flex lg:hidden items-center justify-between mb-8 w-full">
             <button 
               onClick={() => router.back()}
               className="flex items-center gap-2 text-[#525252] hover:text-[#1A1A1A] font-medium text-sm transition-colors"
@@ -149,14 +155,14 @@ function LoginForm() {
               </svg>
               Back
             </button>
-            <Link href="/" className="font-display font-bold text-xl tracking-tight text-[#1A1A1A]">
+            <Link href="/" className="font-display font-bold text-2xl tracking-tight text-[#1A1A1A]">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </header>
 
           {/* Desktop Logo (Hidden on small screens) */}
           <header className="hidden lg:flex justify-end mb-12 w-full">
-            <Link href="/" className="font-display font-bold text-2xl tracking-tight text-[#1A1A1A]">
+            <Link href="/" className="font-display font-bold text-3xl tracking-tight text-[#1A1A1A]">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </header>

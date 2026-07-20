@@ -184,7 +184,8 @@ export default function ForgotPasswordPage() {
               className="w-full h-full object-cover opacity-80"
             />
             {/* Dark gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-[#1A1A1A]/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
           </div>
           
           <div className="relative z-10 flex flex-col justify-between p-12 w-full h-full">
@@ -205,7 +206,7 @@ export default function ForgotPasswordPage() {
             </button>
           </div>
 
-            <div className="text-white mt-auto">
+            <div className="text-white mt-auto drop-shadow-lg">
               <h2 className="font-display text-[40px] leading-[1.1] font-light mb-4 text-white">
                 Regain access to your<br />
                 <span className="font-medium">travel account.</span>
@@ -218,7 +219,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Right Side - Form */}
-        <div className="w-full lg:w-1/2 flex flex-col p-6 sm:p-12 relative overflow-y-auto">
+        <div className="flex-1 flex flex-col px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12 bg-white overflow-y-auto">
           
           {/* Header for mobile/tablet */}
           <header className="flex lg:hidden items-center justify-between mb-8 w-full">
@@ -235,19 +236,19 @@ export default function ForgotPasswordPage() {
               </svg>
               Back
             </button>
-            <Link href="/" className="font-display font-bold text-xl tracking-tight text-[#1A1A1A]">
+            <Link href="/" className="font-display font-bold text-2xl tracking-tight text-[#1A1A1A]">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </header>
 
           {/* Desktop Logo (Hidden on small screens) */}
           <header className="hidden lg:flex justify-end mb-12 w-full">
-            <Link href="/" className="font-display font-bold text-2xl tracking-tight text-[#1A1A1A]">
+            <Link href="/" className="font-display font-bold text-3xl tracking-tight text-[#1A1A1A]">
               Shuv<span className="text-[#D94328]">Marg</span>
             </Link>
           </header>
 
-          <div className="flex-1 flex flex-col justify-center max-w-[480px] w-full mx-auto">
+          <div className="flex-1 flex flex-col justify-center max-w-[400px] w-full mx-auto">
 
             {/* ── Step 1: Phone ─────────────────────────────────────────────── */}
             {step === "phone" && (

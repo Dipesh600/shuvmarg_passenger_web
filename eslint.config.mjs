@@ -13,6 +13,26 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+
+  // SECURITY: ban console statements in authentication code.
+  // console.log in auth files can expose credentials (phone, OTP, password)
+  // in browser developer tools, screen recordings, and remote-support sessions.
+  {
+    files: [
+      "src/app/login/**",
+      "src/app/signup/**",
+      "src/app/forgot-password/**",
+      "src/context/AuthContext*",
+      "src/lib/auth*",
+      "src/lib/api*",
+      "**/auth/**",
+      "**/*auth*",
+    ],
+    rules: {
+      "no-console": ["error", { allow: [] }],
+    },
+  },
 ]);
 
 export default eslintConfig;
+
