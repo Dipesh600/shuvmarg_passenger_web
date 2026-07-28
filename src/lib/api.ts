@@ -16,8 +16,14 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set. Add it to .env.local.");
+function getBaseUrl(): string {
+  if (!BASE_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured. Set it before making API requests."
+    );
+  }
+
+  return BASE_URL.replace(/\/+$/, "");
 }
 
 export interface ApiError {
@@ -82,7 +88,7 @@ export async function request<T = unknown>(
     }
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${getBaseUrl()}${path}`, {
     method,
     headers,
     credentials: "include",
