@@ -6,8 +6,9 @@ import SeatMapTab from './seat-selection/SeatMapTab';
 import { BoardingPointsTab } from './seat-selection/BoardingPointsTab';
 import PassengerDetailsTab from './seat-selection/PassengerDetailsTab';
 import CheckoutTab from './seat-selection/CheckoutTab';
+import CheckoutOtpGate from './seat-selection/CheckoutOtpGate';
 import { useTripSeats } from "@/hooks/useTripSeats";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 interface SeatSelectionDrawerProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface SeatSelectionDrawerProps {
 }
 
 export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDrawerProps) {
-  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState<{id: string, label: string, price: number}[]>([]);
   const [activeTab, setActiveTab] = useState<'seats' | 'points' | 'passenger' | 'checkout'>('seats');
@@ -24,6 +25,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const { seatConfig, bookedSeatIds, isLoading, error } = useTripSeats(trip._id);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState<{ticketId?: string; message: string} | null>(null);
+  const [showOtpGate, setShowOtpGate] = useState(false);
+  const [passwordSetupRecommended, setPasswordSetupRecommended] = useState(false);
 
   // Boarding and Dropping point state
   const [boardingPoint, setBoardingPoint] = useState<string>('');
@@ -376,6 +379,19 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
           )}
         </div>
 
+        {showOtpGate && (
+          <CheckoutOtpGate
+            phone={phone}
+            onPhoneChange={setPhone}
+            onClose={() => setShowOtpGate(false)}
+            onAuthenticated={(passwordSetupRequired) => {
+              setPasswordSetupRecommended(passwordSetupRequired);
+              setShowOtpGate(false);
+              setActiveTab('checkout');
+            }}
+          />
+        )}
+
         {/* Bottom Checkout Bar - fixed at bottom of drawer */}
         {(bookingSuccess || selectedSeats.length > 0) && (
           <div className="border-t border-neutral-200 px-4 md:px-8 py-3 md:py-4 bg-[#EED9BD] md:bg-transparent flex-shrink-0">
@@ -407,7 +423,11 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                       setActiveTab('passenger');
                     } else if (activeTab === 'passenger') {
                       if (validatePassengerForm()) {
-                        setActiveTab('checkout');
+                        if (isAuthenticated) {
+                          setActiveTab('checkout');
+                        } else {
+                          setShowOtpGate(true);
+                        }
                       }
                     } else if (activeTab === 'checkout') {
                       setIsBooking(true);
@@ -425,6 +445,11 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                   <span className="md:hidden">{activeTab === 'seats' ? 'Continue' : activeTab === 'points' ? 'Details' : activeTab === 'passenger' ? 'Payment' : (selectedMethod ? 'Pay' : 'Pay Securely')}</span>
                 </button>
               </div>
+            )}
+            {activeTab === 'checkout' && passwordSetupRecommended && (
+              <p className="mt-2 text-right text-[11px] font-medium text-neutral-500">
+                You can add a password and complete your profile after booking.
+              </p>
             )}
           </div>
         )}

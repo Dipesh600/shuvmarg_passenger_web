@@ -68,6 +68,55 @@ export interface RefreshResponse {
   accessToken: string;
 }
 
+export interface PassengerOtpVerifyResponse {
+  success: boolean;
+  message: string;
+  user: Record<string, unknown>;
+  accessToken: string;
+  activeRole: "passenger";
+  passwordSetupRequired: boolean;
+}
+
+// ── Passenger OTP authentication ─────────────────────────────────────────────
+
+/**
+ * Request the OTP used for frictionless passenger authentication.
+ * The backend intentionally returns the same message for new and existing users.
+ */
+export async function sendPassengerAuthOTP(
+  phone: string
+): Promise<{ success: boolean; message: string }> {
+  return request("/api/auth/passenger/sendOTP", {
+    method: "POST",
+    body: { phone },
+    skipAuth: true,
+  });
+}
+
+/**
+ * Verify a passenger OTP, save the resulting access token, and return the
+ * onboarding hint. Password setup is optional and never blocks checkout.
+ */
+export async function verifyPassengerAuthOTP(
+  phone: string,
+  otp: string
+): Promise<PassengerOtpVerifyResponse> {
+  const data = await request<PassengerOtpVerifyResponse>(
+    "/api/auth/passenger/verifyOTP",
+    {
+      method: "POST",
+      body: { phone, otp },
+      skipAuth: true,
+    }
+  );
+
+  if (data.accessToken) {
+    saveTokens(data.accessToken);
+  }
+
+  return data;
+}
+
 // ── Signup — 3-step OTP registration ─────────────────────────────────────────
 
 /** Step 1: Send OTP to phone. Phone must NOT already exist in the system. */
