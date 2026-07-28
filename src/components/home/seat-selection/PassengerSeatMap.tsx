@@ -47,6 +47,9 @@ export function PassengerSeatMap({
   if (!config?.floors?.length) return null;
 
   const floor = config.floors[0];
+  const unavailableSeats = new Set(
+    bookedSeatIds.map((seat) => seat.trim().toLowerCase())
+  );
 
   return (
     <div
@@ -84,7 +87,8 @@ export function PassengerSeatMap({
               // It's a SEAT
               let state: SeatState = "available";
               if (cell.seatId) {
-                if (bookedSeatIds.includes(cell.seatId)) state = "occupied";
+                const seatKey = (cell.seatLabel || cell.seatId).trim().toLowerCase();
+                if (unavailableSeats.has(seatKey)) state = "occupied";
                 else if (selectedSeatIds.includes(cell.seatId)) state = "selected";
               }
 

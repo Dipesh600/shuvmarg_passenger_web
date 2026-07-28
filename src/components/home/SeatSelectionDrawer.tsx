@@ -8,7 +8,9 @@ import PassengerDetailsTab from './seat-selection/PassengerDetailsTab';
 import CheckoutTab from './seat-selection/CheckoutTab';
 import CheckoutOtpGate from './seat-selection/CheckoutOtpGate';
 import { useTripSeats } from "@/hooks/useTripSeats";
+import { useBookingHold } from "@/hooks/useBookingHold";
 import { useAuth } from "@/context/AuthContext";
+import { ApiRequestError } from "@/lib/api";
 
 interface SeatSelectionDrawerProps {
   isOpen: boolean;
@@ -22,9 +24,9 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const [selectedSeats, setSelectedSeats] = useState<{id: string, label: string, price: number}[]>([]);
   const [activeTab, setActiveTab] = useState<'seats' | 'points' | 'passenger' | 'checkout'>('seats');
   
-  const { seatConfig, bookedSeatIds, isLoading, error } = useTripSeats(trip._id);
-  const [isBooking, setIsBooking] = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState<{ticketId?: string; message: string} | null>(null);
+  const { seatConfig, bookedSeatIds, isLoading, error, refetch } = useTripSeats(trip._id);
+  const [isPreparing, setIsPreparing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [showOtpGate, setShowOtpGate] = useState(false);
   const [passwordSetupRecommended, setPasswordSetupRecommended] = useState(false);
 
@@ -42,7 +44,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [selectedMethod, setSelectedMethod] = useState<string>('esewa');
-  const [timeLeft, setTimeLeft] = useState(600);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -78,13 +79,19 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     touchStartY.current = null;
   };
 
-  useEffect(() => {
-    if (activeTab !== 'checkout' || !timeLeft) return;
-    const timerId = setInterval(() => {
-      setTimeLeft((t) => (t > 0 ? t - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timerId);
-  }, [activeTab, timeLeft]);
+  const handleHoldExpired = useCallback(() => {
+    setCheckoutError("Your seven-minute seat hold expired. Please select your seats again.");
+    setSelectedSeats([]);
+    setActiveTab("seats");
+    void refetch();
+  }, [refetch]);
+
+  const {
+    hold,
+    secondsRemaining,
+    prepare: prepareHold,
+    release: releaseHold,
+  } = useBookingHold(handleHoldExpired);
   
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -132,18 +139,20 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       const timer = setTimeout(() => setIsVisible(true), 10);
       return () => clearTimeout(timer);
     } else {
+      void releaseHold().catch(() => undefined);
       setIsVisible(false);
       const timer = setTimeout(() => setIsRendered(false), 500);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, releaseHold]);
 
   const handleClose = useCallback(() => {
+    void releaseHold().catch(() => undefined);
     setIsVisible(false);
     setTimeout(() => {
       onClose();
     }, 500);
-  }, [onClose]);
+  }, [onClose, releaseHold]);
 
   // Close on escape key
   useEffect(() => {
@@ -157,6 +166,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   if (!isRendered || !mounted) return null;
 
   const handleToggleSeat = (seatId: string, label: string, price: number) => {
+    if (hold) void releaseHold().catch(() => undefined);
+    setCheckoutError(null);
     setSelectedSeats(prev => {
       const exists = prev.find(s => s.id === seatId);
       if (exists) {
@@ -208,19 +219,31 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   };
 
   const totalPrice = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+  const authoritativePrice = hold?.originalAmount ?? totalPrice;
 
-  const getPaymentFee = () => {
-    switch (selectedMethod) {
-      case 'esewa': return Math.round(totalPrice * 0.015);
-      case 'khalti': return Math.round(totalPrice * 0.015);
-      case 'connectips': return totalPrice <= 500 ? 2 : totalPrice <= 5000 ? 5 : 15;
-      case 'fonepay': return Math.round(totalPrice * 0.015);
-      default: return 0;
+  const openSecureCheckout = async () => {
+    setCheckoutError(null);
+    setIsPreparing(true);
+    try {
+      await prepareHold(trip._id, selectedSeats.map((seat) => seat.label));
+      setActiveTab("checkout");
+    } catch (err) {
+      setCheckoutError(
+        err instanceof ApiRequestError
+          ? err.message
+          : "We could not reserve those seats. Please refresh and try again."
+      );
+      if (err instanceof ApiRequestError && err.statusCode === 409) {
+        setActiveTab("seats");
+        void refetch();
+      }
+    } finally {
+      setIsPreparing(false);
     }
   };
 
-  const paymentFee = getPaymentFee();
-  const finalPrice = totalPrice + paymentFee;
+  const paymentFee = 0;
+  const finalPrice = authoritativePrice + paymentFee;
   const content = (
     <>
       {/* Backdrop */}
@@ -372,7 +395,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               selectedMethod={selectedMethod}
               setSelectedMethod={setSelectedMethod}
               selectedSeats={selectedSeats}
-              totalPrice={totalPrice}
+              totalPrice={authoritativePrice}
               paymentFee={paymentFee}
               finalPrice={finalPrice}
             />
@@ -387,32 +410,26 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
             onAuthenticated={(passwordSetupRequired) => {
               setPasswordSetupRecommended(passwordSetupRequired);
               setShowOtpGate(false);
-              setActiveTab('checkout');
+              void openSecureCheckout();
             }}
           />
         )}
 
         {/* Bottom Checkout Bar - fixed at bottom of drawer */}
-        {(bookingSuccess || selectedSeats.length > 0) && (
+        {selectedSeats.length > 0 && (
           <div className="border-t border-neutral-200 px-4 md:px-8 py-3 md:py-4 bg-[#EED9BD] md:bg-transparent flex-shrink-0">
-            {bookingSuccess ? (
-              <div className="bg-[#16a34a]/10 border border-[#16a34a]/20 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <h4 className="text-[15px] font-bold text-[#16a34a] mb-1">Booking Confirmed!</h4>
-                  <p className="text-[13px] text-[#16a34a]/80 font-medium">Ticket ID: {bookingSuccess.ticketId}</p>
-                </div>
-                <button onClick={onClose} className="px-6 py-2 bg-[#16a34a] text-white rounded-lg text-[13px] font-bold">
-                  Done
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[12px] md:text-[13px] text-neutral-500 font-medium mb-0.5 md:mb-1 leading-none">
                     {selectedSeats.length} Seat{selectedSeats.length > 1 ? 's' : ''} Selected
                   </p>
                   <div className="flex items-baseline gap-2">
-                    <h4 className="text-[20px] md:text-[24px] font-black text-neutral-900 leading-none">Rs. {activeTab === 'checkout' ? (finalPrice - Math.round(totalPrice * 0.10)) : totalPrice}</h4>
+                    <h4 className="text-[20px] md:text-[24px] font-black text-neutral-900 leading-none">Rs. {activeTab === 'checkout' ? finalPrice : authoritativePrice}</h4>
+                    {hold && (
+                      <span className="text-xs font-bold text-[#7A1D1B]">
+                        Held {formatTime(secondsRemaining)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button 
@@ -424,27 +441,27 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                     } else if (activeTab === 'passenger') {
                       if (validatePassengerForm()) {
                         if (isAuthenticated) {
-                          setActiveTab('checkout');
+                          await openSecureCheckout();
                         } else {
                           setShowOtpGate(true);
                         }
                       }
                     } else if (activeTab === 'checkout') {
-                      setIsBooking(true);
-                      setTimeout(() => {
-                        setBookingSuccess({ ticketId: "TKT-12345", message: "Booking confirmed!" });
-                        setIsBooking(false);
-                      }, 1000);
+                      setCheckoutError("Online payment handoff is not available yet. No payment was taken and your seats remain held.");
                     }
                   }}
-                  disabled={isBooking || (activeTab === 'points' && (!boardingPoint || !droppingPoint))}
+                  disabled={isPreparing || (activeTab === 'points' && (!boardingPoint || !droppingPoint)) || (activeTab === 'checkout' && !hold)}
                   className="h-[44px] md:h-[48px] px-5 md:px-8 bg-[#7A1D1B] text-white rounded-xl text-[13px] md:text-[15px] font-bold hover:bg-[#5C1414] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
                 >
-                  {isBooking && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isPreparing && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   <span className="hidden md:inline">{activeTab === 'seats' ? 'Continue to Book' : activeTab === 'points' ? 'Fill passenger details' : activeTab === 'passenger' ? 'Proceed to Payment' : (selectedMethod ? 'Pay via ' + selectedMethod.charAt(0).toUpperCase() + selectedMethod.slice(1) : 'Pay Securely')}</span>
                   <span className="md:hidden">{activeTab === 'seats' ? 'Continue' : activeTab === 'points' ? 'Details' : activeTab === 'passenger' ? 'Payment' : (selectedMethod ? 'Pay' : 'Pay Securely')}</span>
                 </button>
               </div>
+            {checkoutError && (
+              <p className="mt-2 text-right text-[12px] font-semibold text-red-700">
+                {checkoutError}
+              </p>
             )}
             {activeTab === 'checkout' && passwordSetupRecommended && (
               <p className="mt-2 text-right text-[11px] font-medium text-neutral-500">
