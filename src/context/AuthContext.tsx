@@ -35,6 +35,7 @@ import {
   refreshAccessToken,
   getAccessToken,
   clearTokens,
+  verifyPassengerAuthOTP,
 } from "@/lib/auth";
 
 // ── Payload type (mirrors what backend puts in the JWT) ───────────────────────
@@ -63,6 +64,14 @@ interface AuthContextValue {
   ) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
+  authenticatePassengerWithOtp: (
+    phone: string,
+    otp: string
+  ) => Promise<{
+    success: boolean;
+    message: string;
+    passwordSetupRequired: boolean;
+  }>;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -167,6 +176,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const authenticatePassengerWithOtp = useCallback(
+    async (phone: string, otp: string) => {
+      const result = await verifyPassengerAuthOTP(phone, otp);
+      const decoded = decodeJwtPayload(result.accessToken);
+
+      if (!decoded) {
+        clearTokens();
+        return {
+          success: false,
+          message: "The login session could not be started. Please try again.",
+          passwordSetupRequired: false,
+        };
+      }
+
+      setUser(decoded);
+      return {
+        success: true,
+        message: result.message,
+        passwordSetupRequired: result.passwordSetupRequired,
+      };
+    },
+    []
+  );
+
   /**
    * Called by the API client when it receives a 401.
    * Returns true if a new token was obtained, false if re-login is needed.
@@ -190,8 +223,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       refreshSession,
+      authenticatePassengerWithOtp,
     }),
-    [user, isLoading, login, logout, refreshSession]
+    [
+      user,
+      isLoading,
+      login,
+      logout,
+      refreshSession,
+      authenticatePassengerWithOtp,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
