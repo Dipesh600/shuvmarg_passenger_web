@@ -36,8 +36,8 @@ function extractBookedSeatIds(data: GetSeatsResponse["data"]): string[] {
     ...(data.seatc ?? []),
   ];
   return allSeats
-    .filter((s) => s.booked || s.blockedFor)
-    .map((s) => s.seatNo);
+    .filter((s) => s.booked || (s.blockedFor && s.blockedFor !== "none"))
+    .map((s) => s.seatNo.trim().toLowerCase());
 }
 
 export function useTripSeats(tripId: string) {
