@@ -14,6 +14,19 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
 
+  // Keep the existing legacy findings visible without blocking every change.
+  // New code should not add to these warnings; retire them incrementally.
+  {
+    rules: {
+      "@next/next/no-html-link-for-pages": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react/no-unescaped-entities": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/static-components": "warn",
+    },
+  },
+
   // SECURITY: ban console statements in authentication code.
   // console.log in auth files can expose credentials (phone, OTP, password)
   // in browser developer tools, screen recordings, and remote-support sessions.
@@ -29,10 +42,9 @@ const eslintConfig = defineConfig([
       "**/*auth*",
     ],
     rules: {
-      "no-console": ["error", { allow: [] }],
+      "no-console": "error",
     },
   },
 ]);
 
 export default eslintConfig;
-

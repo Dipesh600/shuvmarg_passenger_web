@@ -70,7 +70,8 @@ export function useTripSeats(tripId: string) {
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Unable to load seats.";
-      // 401 / 403 → user needs to be logged in to see seats
+      // Seat availability is public. Authentication errors only occur when a
+      // stale or invalid saved token was supplied with the optional session.
       if (
         typeof err === "object" &&
         err !== null &&
@@ -78,7 +79,9 @@ export function useTripSeats(tripId: string) {
         ((err as { statusCode: number }).statusCode === 401 ||
           (err as { statusCode: number }).statusCode === 403)
       ) {
-        setError("Please log in to view seat availability.");
+        setError(
+          "Your saved session is no longer valid. Sign in again to refresh seat availability."
+        );
       } else {
         setError(message);
       }
