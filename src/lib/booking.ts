@@ -43,3 +43,61 @@ export async function releasePassengerBookingHold(
     body: { tempBookingId },
   });
 }
+
+export interface EsewaCheckoutInput {
+  tempBookingId: string;
+  passengerDetails: Array<{
+    name: string;
+    gender: string;
+    seatNo: string;
+  }>;
+  boardingPoint: { name: string; time?: string };
+  droppingPoint: { name: string; time?: string };
+  bookedFrom?: string;
+  bookedTo?: string;
+  bookedDepartureTime?: string;
+  bookedArrivalTime?: string;
+  couponCode?: string;
+  smMoneyToUse?: number;
+}
+
+export interface EsewaCheckout {
+  transactionUuid: string;
+  paymentUrl: string;
+  fields: Record<string, string>;
+  expiresAt: string;
+}
+
+export async function initiateEsewaCheckout(
+  input: EsewaCheckoutInput
+): Promise<EsewaCheckout> {
+  const response = await request<{
+    success: true;
+    data: EsewaCheckout;
+  }>("/api/ticket/esewa/initiate", {
+    method: "POST",
+    body: input,
+  });
+  return response.data;
+}
+
+export interface ConfirmedBooking {
+  bookingId: string;
+  ticketId: string;
+  seats: string[];
+  totalAmount: number;
+}
+
+export async function finalizeEsewaCheckout(
+  transactionUuid: string,
+  responseData?: string | null
+): Promise<ConfirmedBooking> {
+  const response = await request<{
+    success: true;
+    data: ConfirmedBooking;
+  }>("/api/ticket/esewa/finalize", {
+    method: "POST",
+    body: { transactionUuid, responseData: responseData || undefined },
+  });
+  return response.data;
+}

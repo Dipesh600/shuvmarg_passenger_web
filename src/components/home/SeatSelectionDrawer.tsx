@@ -11,6 +11,8 @@ import { useTripSeats } from "@/hooks/useTripSeats";
 import { useBookingHold } from "@/hooks/useBookingHold";
 import { useAuth } from "@/context/AuthContext";
 import { ApiRequestError } from "@/lib/api";
+import { initiateEsewaCheckout } from "@/lib/booking";
+import { submitEsewaCheckout } from "@/lib/esewa";
 
 interface SeatSelectionDrawerProps {
   isOpen: boolean;
@@ -242,6 +244,56 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     }
   };
 
+  const startEsewaPayment = async () => {
+    if (!hold) return;
+    if (secondsRemaining < 60) {
+      setCheckoutError(
+        "There is not enough time left to complete payment. Please reserve the seats again."
+      );
+      await releaseHold().catch(() => undefined);
+      setActiveTab("seats");
+      return;
+    }
+    setCheckoutError(null);
+    setIsPreparing(true);
+    try {
+      const selectedBoarding = mockBoardingPoints.find(
+        (point) => point.name === boardingPoint
+      );
+      const selectedDropping = mockDroppingPoints.find(
+        (point) => point.name === droppingPoint
+      );
+      const checkout = await initiateEsewaCheckout({
+        tempBookingId: hold.tempBookingId,
+        passengerDetails: selectedSeats.map((seat) => ({
+          name: passengers[seat.id].name.trim(),
+          gender: passengers[seat.id].gender,
+          seatNo: seat.label,
+        })),
+        boardingPoint: {
+          name: boardingPoint,
+          time: selectedBoarding?.time,
+        },
+        droppingPoint: {
+          name: droppingPoint,
+          time: selectedDropping?.time,
+        },
+        bookedFrom: trip.routeDetail?.from,
+        bookedTo: trip.routeDetail?.to,
+        bookedDepartureTime: trip.departureTime,
+        bookedArrivalTime: trip.arrivalTime,
+      });
+      submitEsewaCheckout(checkout);
+    } catch (err) {
+      setCheckoutError(
+        err instanceof ApiRequestError
+          ? err.message
+          : "We could not start eSewa payment. No payment was taken."
+      );
+      setIsPreparing(false);
+    }
+  };
+
   const paymentFee = 0;
   const finalPrice = authoritativePrice + paymentFee;
   const content = (
@@ -447,7 +499,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                         }
                       }
                     } else if (activeTab === 'checkout') {
-                      setCheckoutError("Online payment handoff is not available yet. No payment was taken and your seats remain held.");
+                      await startEsewaPayment();
                     }
                   }}
                   disabled={isPreparing || (activeTab === 'points' && (!boardingPoint || !droppingPoint)) || (activeTab === 'checkout' && !hold)}
