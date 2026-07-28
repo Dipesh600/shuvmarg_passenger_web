@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
+import { useRouter } from "next/navigation";
 
 const MapPinIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-[14px] h-[14px]">
@@ -18,6 +19,7 @@ const XIcon = () => (
 
 export default function RecentSearches() {
   const { searches: recentSearches, removeSearch, mounted } = useRecentSearches();
+  const router = useRouter();
 
   if (!mounted || !recentSearches || recentSearches.length === 0) {
     return (
@@ -30,10 +32,15 @@ export default function RecentSearches() {
       <div className="flex items-center gap-2">
         <h3 className="text-[#0B3150] font-bold text-base md:text-lg">Last Visited</h3>
       </div>
-      <div className="flex overflow-x-auto overflow-y-hidden md:flex-wrap gap-3 pb-2 md:pb-0 w-full snap-x snap-mandatory [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {recentSearches.map((search, idx) => (
+      <div className="flex overflow-x-auto overflow-y-hidden gap-3 pb-2 md:pb-0 w-full snap-x snap-mandatory [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {recentSearches.slice(0, 4).map((search, idx) => (
           <button
             key={idx}
+            onClick={() => {
+              if (search.from && search.to) {
+                router.push(`/routes/${search.from.toLowerCase()}-to-${search.to.toLowerCase()}`);
+              }
+            }}
             className="relative flex items-center transition-all shadow-[0_4px_12px_rgba(75,45,20,0.12)] overflow-hidden shrink-0 snap-start group hover:shadow-[0_6px_16px_rgba(217,67,40,0.15)] hover:-translate-y-0.5 h-[68px]"
             style={{
               background: 'linear-gradient(180deg, #F6E8D4 0%, #EED9BD 100%)',

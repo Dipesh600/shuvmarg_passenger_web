@@ -58,7 +58,7 @@ export default function Navbar({ className }: NavbarProps) {
     <nav className={className || defaultClasses}>
       <div className="w-full max-w-[1600px] flex justify-between items-center">
         {/* Logo — text only, no icon */}
-        <Link href="/" className="font-display font-bold text-[32px] tracking-tight text-[#0B3150] cursor-pointer relative top-2 ml-2 md:ml-8">
+        <Link href="/" className="font-display font-bold text-[32px] tracking-tight text-[#0B3150] cursor-pointer relative top-2 -ml-2 md:-ml-6">
           Shuv<span className="text-[#D94328]">Marg</span>
         </Link>
 

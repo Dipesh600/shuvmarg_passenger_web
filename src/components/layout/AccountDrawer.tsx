@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { X, List, User, Wallet, Tag, Info, HelpCircle, ChevronRight } from "lucide-react";
+import { X, List, User, Wallet, Tag, Info, HelpCircle, ChevronRight, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface AccountDrawerProps {
   isOpen: boolean;
@@ -8,6 +9,13 @@ interface AccountDrawerProps {
 }
 
 export default function AccountDrawer({ isOpen, onClose }: AccountDrawerProps) {
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    onClose();
+  };
+
   // Prevent scrolling when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -50,24 +58,44 @@ export default function AccountDrawer({ isOpen, onClose }: AccountDrawerProps) {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
-          {/* Login Section */}
+          {/* Auth Section */}
           <div className="px-6 py-8 border-b border-neutral-100">
-            <h3 className="text-2xl font-bold text-[#0B3150] leading-tight mb-6">
-              Log in to manage your bookings
-            </h3>
-            <Link
-              href="/login"
-              onClick={onClose}
-              className="block w-full py-3.5 bg-[#e14f3c] hover:bg-[#c94331] text-white text-center font-bold rounded-xl transition-colors mb-4"
-            >
-              Log in
-            </Link>
-            <p className="text-neutral-600 font-medium text-[15px] flex items-center gap-1.5">
-              Don't have an account?{" "}
-              <Link href="/signup" onClick={onClose} className="text-[#0B3150] font-bold underline hover:text-[#e14f3c]">
-                Sign up
-              </Link>
-            </p>
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-neutral-100 text-[#D96B62] flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden border border-neutral-200">
+                  <span className="text-[24px] font-black">
+                    {user.name ? user.name.charAt(0).toUpperCase() : (user.phone ? user.phone.charAt(0) : "U")}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-[#0B3150]">
+                    {user.name || "User"}
+                  </h3>
+                  <p className="text-sm text-neutral-500">
+                    {user.phone ? `+977-${user.phone}` : user.email}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-bold text-[#0B3150] leading-tight mb-6">
+                  Log in to manage your bookings
+                </h3>
+                <Link
+                  href="/login"
+                  onClick={onClose}
+                  className="block w-full py-3.5 bg-[#D94328] hover:bg-[#C93522] text-white text-center font-bold rounded-xl transition-colors mb-4"
+                >
+                  Log in
+                </Link>
+                <p className="text-neutral-600 font-medium text-[15px] flex items-center gap-1.5">
+                  Don't have an account?{" "}
+                  <Link href="/signup" onClick={onClose} className="text-[#0B3150] font-bold underline hover:text-[#D94328]">
+                    Sign up
+                  </Link>
+                </p>
+              </>
+            )}
           </div>
 
           {/* My Details Section */}
@@ -125,13 +153,28 @@ export default function AccountDrawer({ isOpen, onClose }: AccountDrawerProps) {
               </Link>
               <Link href="/about" onClick={onClose} className="flex items-center justify-between px-6 py-3.5 hover:bg-[#F8F1E3]/50 transition-colors group">
                 <div className="flex items-center gap-4 text-[#0B3150] font-semibold text-[15px]">
-                  <Info className="w-5 h-5 text-neutral-500 group-hover:text-[#e14f3c] transition-colors" />
+                  <Info className="w-5 h-5 text-neutral-500 group-hover:text-[#D94328] transition-colors" />
                   Know about Shuv Marg
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:text-[#0B3150] transition-colors" />
               </Link>
             </div>
           </div>
+
+          {/* Logout Section */}
+          {isAuthenticated && (
+            <div className="py-2 mb-6">
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-between px-6 py-3.5 hover:bg-red-50 transition-colors group"
+              >
+                <div className="flex items-center gap-4 text-red-600 font-semibold text-[15px]">
+                  <LogOut className="w-5 h-5 text-red-500 group-hover:text-red-700 transition-colors" />
+                  Log out
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

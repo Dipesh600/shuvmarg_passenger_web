@@ -55,6 +55,30 @@ export function applyFilters(trips: TripResult[], filters: SearchFilters): TripR
     // Rating
     if (filters.minRating !== null && trip.busDetail.averageRating < filters.minRating) return false;
 
+    // Amenities
+    if (filters.amenities.length > 0) {
+      const hasAllAmenities = filters.amenities.every((a) =>
+        trip.busDetail.amenities.includes(a)
+      );
+      if (!hasAllAmenities) return false;
+    }
+
+    // Boarding Points
+    if (filters.boardingPoints.length > 0) {
+      const hasBoarding = trip.busDetail.boardingPoints.some((bp) =>
+        filters.boardingPoints.includes(bp.name)
+      );
+      if (!hasBoarding) return false;
+    }
+
+    // Dropping Points
+    if (filters.droppingPoints.length > 0) {
+      const hasDropping = trip.busDetail.droppingPoints.some((dp) =>
+        filters.droppingPoints.includes(dp.name)
+      );
+      if (!hasDropping) return false;
+    }
+
     return true;
   });
 }

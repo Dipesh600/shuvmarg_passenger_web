@@ -111,9 +111,6 @@ export default function SeatMapTab({
   return (
     <div 
       className="w-full flex h-full min-h-0 relative"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Left Pane - Seat Map */}
       <div className="w-full md:w-[65%] lg:w-[70%] border-r-0 md:border-r border-[#D8C5A8] bg-transparent p-4 md:p-8 flex flex-col items-center overflow-y-auto min-h-0 pb-[80px] md:pb-8">

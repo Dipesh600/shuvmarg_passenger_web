@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useRef, useState, useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { format, parse, isValid } from "date-fns";
 import SearchCard from "@/components/home/SearchCard";
 
 function easeOutQuart(t: number) {
@@ -22,6 +23,17 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
   const heroRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Parse date from URL query param (?date=2026-07-13) or default to today
+  const dateParam = searchParams.get("date");
+  const parsedDate = useMemo(() => {
+    if (!dateParam) return new Date();
+    const d = parse(dateParam, "yyyy-MM-dd", new Date());
+    return isValid(d) ? d : new Date();
+  }, [dateParam]);
+
+  const formattedDate = format(parsedDate, "MMMM d, yyyy");
 
   // Binary boolean — drives CSS class-based animations (exact copy of SearchCard pattern)
   const [isSticky, setIsSticky] = useState(false);
@@ -95,7 +107,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
             </span>
           </h1>
           <div className="hidden md:block text-[#475569] text-base md:text-lg font-medium mb-6 max-w-3xl leading-relaxed">
-            The {origin} to {destination} journey is ~200 km and takes 5-6 hours. With 25+ daily buses starting from NPR 500, find the schedule that works best for you.
+            Explore available buses from {origin} to {destination} on {formattedDate}. Compare operators, prices, and amenities to find the schedule that works best for you.
           </div>
 
           {/* Breadcrumb Navigation */}
@@ -145,6 +157,23 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
           } as React.CSSProperties}
         >
 
+          {/* ── Back Button (Desktop only, visible when sticky) ── */}
+          <div
+            className={`hidden md:flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-right overflow-hidden ${
+              isSticky ? "w-[52px] opacity-100 mr-1" : "w-0 opacity-0 mr-0"
+            }`}
+          >
+            <button
+              onClick={() => router.back()}
+              className="w-12 h-12 shrink-0 bg-white/95 hover:bg-white backdrop-blur-md rounded-2xl border border-[#D94328]/30 border-b-[3px] border-b-[#D94328]/80 shadow-[0_12px_32px_rgba(217,67,40,0.15)] flex items-center justify-center text-[#D94328] transition-all hover:-translate-y-0.5 scale-[0.96]"
+              aria-label="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+            </button>
+          </div>
+
           {/* ── Search card wrapper — EXACT copy of SearchCard sticky bar card styling ── */}
           <div
             className={`bg-white/60 backdrop-blur-md rounded-2xl border p-1.5 md:pr-4 md:pl-3 md:py-1.5 flex flex-row items-center gap-2 pb-1 md:pb-1.5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky
@@ -152,7 +181,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
               : "scale-100 shadow-sm border-[#D8BFA6]"
               }`}
           >
-            <SearchCard variant="compact" initialFrom={origin} initialTo={destination} />
+            <SearchCard variant="compact" initialFrom={origin} initialTo={destination} initialDate={parsedDate} />
           </div>
         </div>
       </div>

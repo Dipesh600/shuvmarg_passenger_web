@@ -34,7 +34,7 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
           viewBox="0 0 32 40"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-sm transition-transform group-hover:scale-105"
+          className="w-full h-full drop-shadow-sm transition-transform group-hover:scale-105 pointer-events-none"
         >
           {/* Seat Cushion (Drawn first, so it's 'under') */}
           <rect
@@ -74,7 +74,7 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
         {/* Seat Number Label */}
         {label && (
           <div
-            className="absolute inset-0 flex items-center justify-center pt-[2px] text-[9px] font-bold transition-colors"
+            className="absolute inset-0 flex items-center justify-center pt-[2px] text-[9px] font-bold transition-colors pointer-events-none"
             style={{ color: currentColors.text }}
           >
             {label}

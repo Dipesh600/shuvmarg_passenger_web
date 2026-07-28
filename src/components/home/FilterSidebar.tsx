@@ -29,11 +29,17 @@ export default function FilterSidebar({ results, filters, onFiltersChange }: Fil
     brand: true,
     price: false,
     ratings: true,
+    amenities: false,
+    boarding: false,
+    dropping: false,
   });
 
-  // Derive unique bus types and operators from actual results
+  // Derive unique options from actual results
   const busTypes = [...new Set(results.map((t) => t.busDetail.busType).filter(Boolean))].sort();
   const operators = [...new Set(results.map((t) => t.busDetail.busName).filter(Boolean))].sort();
+  const amenities = [...new Set(results.flatMap((t) => t.busDetail.amenities).filter(Boolean))].sort();
+  const boardingPoints = [...new Set(results.flatMap((t) => t.busDetail.boardingPoints.map(bp => bp.name)).filter(Boolean))].sort();
+  const droppingPoints = [...new Set(results.flatMap((t) => t.busDetail.droppingPoints.map(dp => dp.name)).filter(Boolean))].sort();
 
   // Derive price range from actual results
   const prices = results.map((t) => t.tripFare).filter((p) => p > 0);
@@ -67,6 +73,30 @@ export default function FilterSidebar({ results, filters, onFiltersChange }: Fil
     });
   };
 
+  const toggleAmenity = (amenity: string) => {
+    const current = filters.amenities;
+    onFiltersChange({
+      ...filters,
+      amenities: current.includes(amenity) ? current.filter((a) => a !== amenity) : [...current, amenity],
+    });
+  };
+
+  const toggleBoarding = (bp: string) => {
+    const current = filters.boardingPoints;
+    onFiltersChange({
+      ...filters,
+      boardingPoints: current.includes(bp) ? current.filter((b) => b !== bp) : [...current, bp],
+    });
+  };
+
+  const toggleDropping = (dp: string) => {
+    const current = filters.droppingPoints;
+    onFiltersChange({
+      ...filters,
+      droppingPoints: current.includes(dp) ? current.filter((d) => d !== dp) : [...current, dp],
+    });
+  };
+
   const setRating = (r: number) => {
     onFiltersChange({ ...filters, minRating: filters.minRating === r ? null : r });
   };
@@ -79,12 +109,18 @@ export default function FilterSidebar({ results, filters, onFiltersChange }: Fil
       minPrice: null,
       maxPrice: null,
       minRating: null,
+      amenities: [],
+      boardingPoints: [],
+      droppingPoints: [],
     });
 
   const activeCount =
     filters.departureTimes.length +
     filters.busTypes.length +
     filters.operators.length +
+    filters.amenities.length +
+    filters.boardingPoints.length +
+    filters.droppingPoints.length +
     (filters.minRating !== null ? 1 : 0) +
     (filters.minPrice !== null || filters.maxPrice !== null ? 1 : 0);
 
@@ -294,6 +330,73 @@ export default function FilterSidebar({ results, filters, onFiltersChange }: Fil
             </div>
           )}
         </div>
+        <div className="h-px bg-[#C4A07A]/30" />
+
+        {/* ── Amenities ── */}
+        {amenities.length > 0 && (
+          <>
+            <div>
+              <SectionHeader label="Amenities" sectionKey="amenities" />
+              {expanded.amenities && (
+                <div className="flex flex-col">
+                  {amenities.map((a) => (
+                    <CheckItem
+                      key={a}
+                      checked={filters.amenities.includes(a)}
+                      label={a}
+                      onClick={() => toggleAmenity(a)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="h-px bg-[#C4A07A]/30" />
+          </>
+        )}
+
+        {/* ── Boarding Points ── */}
+        {boardingPoints.length > 0 && (
+          <>
+            <div>
+              <SectionHeader label="Boarding Points" sectionKey="boarding" />
+              {expanded.boarding && (
+                <div className="flex flex-col max-h-48 overflow-y-auto scrollbar-hide">
+                  {boardingPoints.map((bp) => (
+                    <CheckItem
+                      key={bp}
+                      checked={filters.boardingPoints.includes(bp)}
+                      label={bp}
+                      onClick={() => toggleBoarding(bp)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="h-px bg-[#C4A07A]/30" />
+          </>
+        )}
+
+        {/* ── Dropping Points ── */}
+        {droppingPoints.length > 0 && (
+          <>
+            <div>
+              <SectionHeader label="Dropping Points" sectionKey="dropping" />
+              {expanded.dropping && (
+                <div className="flex flex-col max-h-48 overflow-y-auto scrollbar-hide">
+                  {droppingPoints.map((dp) => (
+                    <CheckItem
+                      key={dp}
+                      checked={filters.droppingPoints.includes(dp)}
+                      label={dp}
+                      onClick={() => toggleDropping(dp)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="h-px bg-[#C4A07A]/30" />
+          </>
+        )}
         </div>
       </div>
     </div>
