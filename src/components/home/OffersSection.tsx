@@ -6,13 +6,127 @@ import Image from "next/image";
 import Link from "next/link";
 import { Tag, ShieldCheck, Clock, ArrowRight, Bus, Paperclip } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { request } from "@/lib/api";
+
+const getEdgeConfig = (type: string, edge: 'top'|'bottom'|'left'|'right') => {
+  let gap = 0, mask = '', size = '', pos = '', repeat = '';
+  const isY = edge === 'left' || edge === 'right';
+  
+  if (type === 'ticket') {
+    gap = 6;
+    if (isY) {
+      mask = `radial-gradient(circle at ${edge==='left'?'0px':'6px'} 12px, transparent 6px, black 6.5px)`;
+      size = `6px 24px`;
+      pos = `${edge==='left'?'0px':'100%'} 0px`;
+      repeat = `repeat-y`;
+    } else {
+      mask = `radial-gradient(circle at 12px ${edge==='top'?'0px':'6px'}, transparent 6px, black 6.5px)`;
+      size = `24px 6px`;
+      pos = `0px ${edge==='top'?'0px':'100%'}`;
+      repeat = `repeat-x`;
+    }
+  } else if (type === 'torn') {
+    gap = 8;
+    if (isY) {
+      mask = `radial-gradient(circle at ${edge==='left'?'0px':'8px'} 16px, transparent 8px, black 8.5px)`;
+      size = `8px 32px`;
+      pos = `${edge==='left'?'0px':'100%'} 0px`;
+      repeat = `repeat-y`;
+    } else {
+      mask = `radial-gradient(circle at 16px ${edge==='top'?'0px':'8px'}, transparent 8px, black 8.5px)`;
+      size = `32px 8px`;
+      pos = `0px ${edge==='top'?'0px':'100%'}`;
+      repeat = `repeat-x`;
+    }
+  } else if (type === 'jagged') {
+    gap = 4;
+    if (isY) {
+      mask = `radial-gradient(circle at ${edge==='left'?'0px':'4px'} 8px, transparent 4px, black 4.5px)`;
+      size = `4px 16px`;
+      pos = `${edge==='left'?'0px':'100%'} 0px`;
+      repeat = `repeat-y`;
+    } else {
+      mask = `radial-gradient(circle at 8px ${edge==='top'?'0px':'4px'}, transparent 4px, black 4.5px)`;
+      size = `16px 4px`;
+      pos = `0px ${edge==='top'?'0px':'100%'}`;
+      repeat = `repeat-x`;
+    }
+  }
+  return { gap, mask, size, pos, repeat };
+};
+
+const generateMaskStyle = (edges: any) => {
+  if (!edges) return {};
+  const e = {
+    top: edges.top || 'smooth',
+    bottom: edges.bottom || 'smooth',
+    left: edges.left || 'smooth',
+    right: edges.right || 'smooth'
+  };
+  
+  if (e.top === 'smooth' && e.bottom === 'smooth' && e.left === 'smooth' && e.right === 'smooth') {
+    return {};
+  }
+
+  const masks = [];
+  const sizes = [];
+  const positions = [];
+  const repeats = [];
+  
+  const tc = getEdgeConfig(e.top, 'top');
+  const bc = getEdgeConfig(e.bottom, 'bottom');
+  const lc = getEdgeConfig(e.left, 'left');
+  const rc = getEdgeConfig(e.right, 'right');
+  
+  // Base center
+  masks.push(`linear-gradient(black, black)`);
+  sizes.push(`calc(100% - ${lc.gap + rc.gap}px) calc(100% - ${tc.gap + bc.gap}px)`);
+  positions.push(`${lc.gap}px ${tc.gap}px`);
+  repeats.push(`no-repeat`);
+  
+  if (tc.gap > 0) { masks.push(tc.mask); sizes.push(tc.size); positions.push(tc.pos); repeats.push(tc.repeat); }
+  if (bc.gap > 0) { masks.push(bc.mask); sizes.push(bc.size); positions.push(bc.pos); repeats.push(bc.repeat); }
+  if (lc.gap > 0) { masks.push(lc.mask); sizes.push(lc.size); positions.push(lc.pos); repeats.push(lc.repeat); }
+  if (rc.gap > 0) { masks.push(rc.mask); sizes.push(rc.size); positions.push(rc.pos); repeats.push(rc.repeat); }
+  
+  const maskImage = masks.join(', ');
+  const maskSize = sizes.join(', ');
+  const maskPosition = positions.join(', ');
+  const maskRepeat = repeats.join(', ');
+  
+  return {
+    WebkitMaskImage: maskImage,
+    WebkitMaskSize: maskSize,
+    WebkitMaskPosition: maskPosition,
+    WebkitMaskRepeat: maskRepeat,
+    maskImage: maskImage,
+    maskSize: maskSize,
+    maskPosition: maskPosition,
+    maskRepeat: maskRepeat,
+  };
+};
 
 export default function OffersSection() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+    const fetchCoupons = async () => {
+      try {
+        const response = await request<{ success: boolean; data: any[] }>("/api/coupons/all");
+        if (response.success && response.data) {
+           setCoupons(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch coupons:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCoupons();
   }, []);
 
   const handleCopy = (code: string) => {
@@ -43,73 +157,11 @@ export default function OffersSection() {
     <div className="w-full text-left relative">
       {mounted && typeof document !== "undefined" ? createPortal(toastContent, document.body) : toastContent}
 
-      {/* CSS for stamp edge mask */}
+      {/* CSS for grid bg */}
       <style dangerouslySetInnerHTML={{__html: `
-        .stamp-edge {
-          -webkit-mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px);
-          -webkit-mask-size: calc(100% - 12px) calc(100% - 12px), 24px 24px;
-          -webkit-mask-position: center, -12px -12px;
-          -webkit-mask-repeat: no-repeat, repeat;
-          mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px);
-          mask-size: calc(100% - 12px) calc(100% - 12px), 24px 24px;
-          mask-position: center, -12px -12px;
-          mask-repeat: no-repeat, repeat;
-        }
-        .stamp-edge-large {
-          -webkit-mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 16px 16px, transparent 8px, black 8.5px);
-          -webkit-mask-size: calc(100% - 16px) calc(100% - 16px), 32px 32px;
-          -webkit-mask-position: center, -16px -16px;
-          -webkit-mask-repeat: no-repeat, repeat;
-          mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 16px 16px, transparent 8px, black 8.5px);
-          mask-size: calc(100% - 16px) calc(100% - 16px), 32px 32px;
-          mask-position: center, -16px -16px;
-          mask-repeat: no-repeat, repeat;
-        }
-        .stamp-edge-lr {
-          -webkit-mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px);
-          -webkit-mask-size: calc(100% - 12px) 100%, 24px 24px, 24px 24px;
-          -webkit-mask-position: center, -12px -12px, right -12px top -12px;
-          -webkit-mask-repeat: no-repeat, repeat-y, repeat-y;
-          mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px);
-          mask-size: calc(100% - 12px) 100%, 24px 24px, 24px 24px;
-          mask-position: center, -12px -12px, right -12px top -12px;
-          mask-repeat: no-repeat, repeat-y, repeat-y;
-        }
-        .stamp-edge-tb {
-          -webkit-mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px);
-          -webkit-mask-size: 100% calc(100% - 12px), 24px 24px, 24px 24px;
-          -webkit-mask-position: center, left -12px top -12px, left -12px bottom -12px;
-          -webkit-mask-repeat: no-repeat, repeat-x, repeat-x;
-          mask-image: 
-            linear-gradient(black, black),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px),
-            radial-gradient(circle at 12px 12px, transparent 6px, black 6.5px);
-          mask-size: 100% calc(100% - 12px), 24px 24px, 24px 24px;
-          mask-position: center, left -12px top -12px, left -12px bottom -12px;
-          mask-repeat: no-repeat, repeat-x, repeat-x;
-        }
         .orange-grid-bg {
           background-color: #ff7828;
-          background-image: 
-            linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+          background-image: linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
           background-size: 14px 14px;
           background-position: center;
         }
@@ -145,169 +197,133 @@ export default function OffersSection() {
         {/* Horizontal Scroll of Offers */}
         <div className="relative z-10 flex overflow-x-auto gap-6 md:gap-8 mb-10 pb-8 pt-4 px-4 -mx-4 scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
           
-          {/* Card 1: Weekend Getaway */}
-          <div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] aspect-[1.75/1] min-h-[220px] shrink-0 hover:z-50 cursor-pointer"
-            onClick={() => handleCopy("WEEKEND20")}
-          >
-            {/* Orange background layer */}
-            <div 
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:-rotate-3 lg:group-hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </div>
+          {loading ? (
+             <div className="flex gap-6">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-[85vw] md:w-[45vw] lg:w-[450px] aspect-[1.75/1] min-h-[220px] shrink-0 bg-white/10 animate-pulse rounded-2xl" />
+                ))}
+             </div>
+          ) : coupons.length === 0 ? (
+             <div className="w-full text-center py-10 text-white/80">No active offers at the moment. Check back later!</div>
+          ) : (
+            coupons.map((coupon, index) => {
+              const isOperator = coupon.category === "Operator Offer";
+              const isExclusive = coupon.category === "Exclusive";
+              const design = coupon.designConfig || {};
+              
+              let maskStyle = {};
+              
+              if (!design.edges) {
+                if (isExclusive) {
+                  maskStyle = generateMaskStyle({ top: 'torn', bottom: 'torn', left: 'torn', right: 'torn' });
+                } else if (isOperator) {
+                  maskStyle = generateMaskStyle({ top: 'smooth', bottom: 'smooth', left: 'ticket', right: 'ticket' });
+                } else {
+                  maskStyle = generateMaskStyle({ top: 'smooth', bottom: 'smooth', left: 'ticket', right: 'ticket' });
+                }
+              } else {
+                maskStyle = generateMaskStyle(design.edges);
+              }
+              
+              const bgClass = isOperator ? "bg-white" : "bg-[#F8F1E3]";
+              
+              // Image Config
+              const imgConf = design.imageConfig || {};
+              const imgFitClass = imgConf.fit === "cover" ? "object-cover" : 
+                                  imgConf.fit === "fill" ? "object-fill" : "object-contain";
+              // scale stored as 0-300 (100 = 1x), offsets as -50 to 50 (%)
+              const imgScale = (imgConf.scale ?? 100) / 100;
+              const imgOffsetX = imgConf.offsetX ?? 0;
+              const imgOffsetY = imgConf.offsetY ?? 0;
             
-            {/* Main white card */}
-            <div 
-              className="relative bg-[#F8F1E3] rounded-2xl stamp-edge h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:-rotate-2 lg:group-hover:-translate-x-1.5 lg:group-hover:-translate-y-1.5"
-            >
-               <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-               <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
-               <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
-               <div className="relative z-10 flex flex-col items-start w-[55%] pr-2">
-                 <span className="bg-[#ff7828]/10 text-[#ff7828] text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-3">General Offer</span>
-                 <h3 className="text-[#015db8] text-[26px] md:text-[30px] font-black font-display uppercase leading-[1.05] tracking-tight mb-2">Weekend<br/>Getaway</h3>
-                 <p className="text-gray-600 text-xs md:text-sm font-medium mb-5">Flat discount for every weekend trip</p>
-                 <div className="inline-flex items-center border border-dashed border-[#ff7828]/50 px-3 py-1.5 rounded-md bg-white">
-                   <span className="text-gray-500 font-medium text-xs mr-2">Use Code</span>
-                   <span className="text-[#ff7828] font-bold text-sm">WEEKEND20</span>
-                 </div>
-               </div>
-               <div className="relative z-10 w-[45%] flex flex-col justify-between items-end h-full pt-2">
-                 <div className="w-full flex justify-center items-center relative flex-grow">
-                   <Image src="/images/offers/bus.webp" alt="Weekend Getaway Bus" width={200} height={200} className="w-[90%] h-auto object-contain drop-shadow-md" />
-                 </div>
-                 <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
-               </div>
-            </div>
-          </div>
+              // Typography Config
+              const typo = design.typography || {};
+              const titleAlignClass = typo.titleAlignment === 'center' ? 'text-center' : typo.titleAlignment === 'right' ? 'text-right' : 'text-left';
+              const descAlignClass = typo.descAlignment === 'center' ? 'text-center' : typo.descAlignment === 'right' ? 'text-right' : 'text-left';
+              const codeAlignClass = typo.codeAlignment === 'center' ? 'self-center' : typo.codeAlignment === 'right' ? 'self-end' : 'self-start';
+              
+              const imageUrl = coupon.imageUrl;
 
-          {/* Card 2: Travel More Save More */}
-          <div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] aspect-[1.75/1] min-h-[220px] shrink-0 hover:z-50 cursor-pointer"
-            onClick={() => handleCopy("DELUXE10")}
-          >
-            {/* Orange background layer */}
-            <div 
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:rotate-3 lg:group-hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </div>
-            
-            {/* Main white card */}
-            <div 
-              className="relative bg-white rounded-2xl stamp-edge-lr h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:rotate-2 lg:group-hover:translate-x-1.5 lg:group-hover:-translate-y-1.5"
-            >
-               <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-               <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
-               <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
-               <div className="relative z-10 flex flex-col items-start w-[55%] pr-2">
-                 <div className="flex items-center gap-2 mb-3">
-                   <div className="w-6 h-6 bg-[#015db8]/10 rounded-full flex items-center justify-center">
-                     <span className="text-[#015db8] font-bold text-[8px]">SM</span>
-                   </div>
-                   <div className="flex flex-col">
-                     <span className="text-gray-900 text-[11px] font-bold leading-none">ShuvMarg Deluxe</span>
-                     <span className="text-[#ff7828] text-[10px] font-medium leading-tight mt-0.5">Operator Offer</span>
-                   </div>
-                 </div>
-                 <h3 className="text-[#015db8] text-[26px] md:text-[30px] font-black font-display uppercase leading-[1.05] tracking-tight mb-2">Travel More<br/>Save More</h3>
-                 <p className="text-gray-600 text-xs md:text-sm font-medium mb-4">Special savings on this bus</p>
-                 <div className="inline-flex items-center border border-dashed border-[#ff7828]/50 px-3 py-1.5 rounded-md bg-white mb-2.5">
-                   <span className="text-gray-500 font-medium text-xs mr-2">Use Code</span>
-                   <span className="text-[#ff7828] font-bold text-sm">DELUXE10</span>
-                 </div>
-                 <div className="inline-flex items-center gap-1.5 bg-[#015db8]/5 text-[#015db8] px-2 py-1 rounded-md text-[10px] font-semibold">
-                    <Bus className="w-3 h-3" /> Valid for this bus only
-                 </div>
-               </div>
-               <div className="relative z-10 w-[45%] flex flex-col justify-between items-end h-full pt-2">
-                 <div className="w-full flex justify-center items-center flex-grow">
-                   <Image src="/images/offers/ticket.webp" alt="Travel Tickets" width={200} height={200} className="w-[85%] h-auto object-contain drop-shadow-md" />
-                 </div>
-                 <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
-               </div>
-            </div>
-          </div>
+              // Alternate hover effects slightly for variety, based on index
+              const rotateHover = index % 2 === 0 ? "lg:group-hover:-rotate-3" : "lg:group-hover:rotate-3";
+              const cardHover = index % 2 === 0 
+                ? "lg:group-hover:-rotate-2 lg:group-hover:-translate-x-1.5 lg:group-hover:-translate-y-1.5"
+                : "lg:group-hover:rotate-2 lg:group-hover:translate-x-1.5 lg:group-hover:-translate-y-1.5";
 
-          {/* Card 3: 20% OFF */}
-          <div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] aspect-[1.75/1] min-h-[220px] shrink-0 hover:z-50 cursor-pointer"
-            onClick={() => handleCopy("SAVE20")}
-          >
-            {/* Orange background layer */}
-            <div 
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:-rotate-2 lg:group-hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </div>
-            
-            {/* Main white card */}
-            <div 
-              className="relative bg-white rounded-2xl stamp-edge-tb h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:-rotate-2 lg:group-hover:-translate-x-1.5 lg:group-hover:-translate-y-1.5"
-            >
-               <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-               <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
-               <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
-               <div className="relative z-10 flex flex-col items-start w-[55%] pr-2">
-                 <div className="flex items-start gap-1 text-[#015db8] mb-3">
-                   <span className="text-[56px] md:text-[64px] font-black font-display leading-[0.8] tracking-tighter">20</span>
-                   <div className="flex flex-col pt-1">
-                     <span className="text-2xl font-black font-display leading-none">%</span>
-                     <span className="text-xl font-black font-display leading-none">OFF</span>
-                   </div>
-                 </div>
-                 <p className="text-gray-900 font-bold text-xs md:text-sm mb-5">On all routes. All week long!</p>
-                 <div className="inline-flex items-center border border-dashed border-[#ff7828]/50 px-3 py-1.5 rounded-md bg-white">
-                   <span className="text-gray-500 font-medium text-xs mr-2">Use Code</span>
-                   <span className="text-[#ff7828] font-bold text-sm">SAVE20</span>
-                 </div>
-               </div>
-               <div className="relative z-10 w-[45%] flex flex-col justify-between items-end h-full pt-2">
-                 <div className="w-full flex justify-center items-center relative flex-grow">
-                   <Image src="/images/offers/wallet.webp" alt="Discount Wallet" width={200} height={200} className="w-[85%] h-auto object-contain drop-shadow-md" />
-                 </div>
-                 <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
-               </div>
-            </div>
-          </div>
-
-          {/* Card 4: New User Bonus */}
-          <div 
-            className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] aspect-[1.75/1] min-h-[220px] shrink-0 hover:z-50 cursor-pointer"
-            onClick={() => handleCopy("SHUVMARG50")}
-          >
-            {/* Orange background layer */}
-            <div 
-              className="absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 lg:group-hover:rotate-2 lg:group-hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
-            </div>
-            
-            {/* Main white card */}
-            <div 
-              className="relative bg-[#F8F1E3] rounded-2xl stamp-edge-large h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 lg:group-hover:rotate-2 lg:group-hover:translate-x-1.5 lg:group-hover:-translate-y-1.5"
-            >
-               <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-               <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
-               <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
-               <div className="relative z-10 flex flex-col items-start w-[55%] pr-2 text-left">
-                 <span className="bg-[#ff7828] text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-3">Exclusive</span>
-                 <h3 className="text-[#015db8] text-[26px] md:text-[30px] font-black font-display uppercase leading-[1.05] tracking-tight mb-5">New User<br/>Bonus</h3>
-                 <div className="inline-flex items-center border border-dashed border-[#ff7828]/50 px-3 py-1.5 rounded-md bg-white">
-                   <span className="text-gray-500 font-medium text-xs mr-2">Use Code</span>
-                   <span className="text-[#ff7828] font-bold text-sm">SHUVMARG50</span>
-                 </div>
-               </div>
-               <div className="relative z-10 w-[45%] flex flex-col justify-between items-end h-full pt-2">
-                 <div className="w-full flex justify-center items-center flex-grow">
-                   <Image src="/images/offers/gift.webp" alt="New User Gift" width={200} height={200} className="w-[80%] h-auto object-contain drop-shadow-md" />
-                 </div>
-                 <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2">T&C apply</p>
-               </div>
-            </div>
-          </div>
-
+              return (
+                <div 
+                  key={coupon._id}
+                  className="relative group w-[85vw] md:w-[45vw] lg:w-[450px] aspect-[1.75/1] min-h-[220px] shrink-0 hover:z-50 cursor-pointer"
+                  onClick={() => handleCopy(coupon.couponCode)}
+                >
+                  {/* Orange background layer */}
+                  <div className={`absolute inset-0 rounded-2xl drop-shadow-xl z-0 transition-transform duration-300 ${rotateHover} lg:group-hover:scale-[1.02]`}>
+                    <div className="absolute inset-0 orange-grid-bg rounded-2xl"></div>
+                  </div>
+                  
+                  {/* Main white/cream card */}
+                  <div className={`relative ${bgClass} rounded-2xl h-full p-6 flex items-center justify-between shadow-md overflow-hidden transition-transform duration-300 ${cardHover}`} style={maskStyle}>
+                    <div className="absolute inset-0 opacity-50 mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                    <div className="absolute top-0 bottom-0 right-[45%] w-px border-l-2 border-dashed border-gray-300 opacity-60 z-20" />
+                    <Paperclip className="absolute -top-3 right-[calc(45%-14px)] w-8 h-8 text-gray-400 drop-shadow-sm z-30 -rotate-12" />
+                    
+                    <div className={`relative z-10 flex flex-col w-[55%] pr-2 h-full justify-center items-stretch`}>
+                      {isExclusive ? (
+                        <span className={`bg-[#ff7828] text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-3 shrink-0 self-start`}>{coupon.category || "Exclusive"}</span>
+                      ) : (
+                        <span className={`bg-[#ff7828]/10 text-[#ff7828] text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-3 shrink-0 self-start`}>{coupon.category || "General Offer"}</span>
+                      )}
+                      
+                      {/* Check if discountType is percentage and the title is literally "20% OFF" to render it uniquely, or just render the title normally */}
+                      {coupon.title?.includes("% OFF") ? (
+                        <div className={`flex items-start gap-1 text-[#015db8] mb-3 ${titleAlignClass}`}>
+                          <span className="text-[48px] md:text-[56px] font-black font-display leading-[0.8] tracking-tighter">{coupon.title.split("%")[0]}</span>
+                          <div className="flex flex-col pt-1">
+                            <span className="text-xl md:text-2xl font-black font-display leading-none">%</span>
+                            <span className="text-lg md:text-xl font-black font-display leading-none">OFF</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <h3 className={`text-[#015db8] text-[22px] md:text-[26px] font-black font-display uppercase leading-[1.05] tracking-tight mb-2 line-clamp-2 ${titleAlignClass}`} title={coupon.title}>{coupon.title}</h3>
+                      )}
+                      
+                      <p className={`text-gray-600 text-xs md:text-sm font-medium mb-4 line-clamp-2 ${descAlignClass}`} title={coupon.description}>{coupon.description}</p>
+                      
+                      <div className={`inline-flex items-center border border-dashed border-[#ff7828]/50 px-3 py-1.5 rounded-md bg-white ${codeAlignClass}`}>
+                        <span className="text-gray-500 font-medium text-[10px] md:text-xs mr-2">Use Code</span>
+                        <span className="text-[#ff7828] font-bold text-xs md:text-sm">{coupon.couponCode}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="relative z-10 w-[45%] flex flex-col justify-between items-end h-full pt-2">
+                       <div className="w-full flex justify-center items-center relative flex-grow pl-2">
+                         {imageUrl ? (
+                           <img 
+                             src={imageUrl} 
+                             alt="Offer visual" 
+                             className={`w-full h-full ${imgFitClass} drop-shadow-md`} 
+                             style={{
+                               transform: `scale(${imgScale}) translate(${imgOffsetX}%, ${imgOffsetY}%)`,
+                               transformOrigin: 'center center',
+                               transition: 'transform 0.15s ease',
+                             }}
+                             onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+                           />
+                         ) : (
+                           <span className="text-[#015db8] text-2xl font-black uppercase tracking-widest mt-6">
+                             Offer
+                           </span>
+                         )}
+                       </div>
+                      <p className="text-gray-400 text-[9px] font-medium tracking-wide mt-2 text-right">
+                        * T&C apply
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Bottom Bar */}

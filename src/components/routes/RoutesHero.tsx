@@ -164,7 +164,7 @@ export default function RoutesHero() {
 
           {/* ── Search card wrapper — EXACT copy of SearchCard sticky bar card styling ── */}
           <div
-            className={`bg-white/60 backdrop-blur-md rounded-2xl border p-1.5 md:pr-4 md:pl-3 md:py-1.5 flex flex-row items-center gap-2 overflow-x-auto scrollbar-hide pb-1 md:pb-1.5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky
+            className={`bg-white/60 backdrop-blur-md rounded-2xl border p-1.5 md:pr-4 md:pl-3 md:py-1.5 flex flex-row items-center gap-2 pb-1 md:pb-1.5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky
               ? "scale-[0.96] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/95 border-[#D94328]/30 border-b-[#D94328]/80"
               : "scale-100 shadow-sm border-[#D8BFA6]"
               }`}

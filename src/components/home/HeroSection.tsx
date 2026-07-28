@@ -6,7 +6,7 @@ import heroBg from "../../../public/images/hero_background.png";
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full min-h-screen flex flex-col items-stretch justify-start pt-[100px] md:pt-[130px] pb-32 sm:pb-40 md:pb-64 px-4">
+    <section className="relative w-full flex flex-col items-stretch justify-start pt-[100px] md:pt-[130px] pb-32 sm:pb-40 md:pb-48 px-4">
 
       {/* Papercut Background Image */}
       <div className="absolute inset-0 -z-10">

@@ -1,6 +1,8 @@
 export interface BoardingPoint {
+  id?: string;
   name: string;
   time?: string;
+  address?: string;
 }
 
 export interface BusDetail {
@@ -55,6 +57,9 @@ export interface SearchFilters {
   minPrice: number | null;
   maxPrice: number | null;
   minRating: number | null;
+  amenities: string[];
+  boardingPoints: string[];
+  droppingPoints: string[];
 }
 
 export const DEFAULT_FILTERS: SearchFilters = {
@@ -64,6 +69,9 @@ export const DEFAULT_FILTERS: SearchFilters = {
   minPrice: null,
   maxPrice: null,
   minRating: null,
+  amenities: [],
+  boardingPoints: [],
+  droppingPoints: [],
 };
 
 export type SortOption = "Recommended" | "Ratings" | "Departure Time" | "Price";
