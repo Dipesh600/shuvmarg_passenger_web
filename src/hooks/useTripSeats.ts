@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { SeatConfig } from "@/components/home/seat-selection/PassengerSeatMap";
 import { request } from "@/lib/api";
 
@@ -44,10 +44,14 @@ export function useTripSeats(tripId: string) {
   const [data, setData] = useState<TripSeatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
 
   const loadSeats = useCallback(async () => {
     if (!tripId) return;
 
+    activeRequestRef.current?.abort();
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
     setIsLoading(true);
     setError(null);
 
@@ -55,6 +59,7 @@ export function useTripSeats(tripId: string) {
       const requestOptions = {
         method: "POST" as const,
         body: { tripId },
+        signal: controller.signal,
       };
       let response: GetSeatsResponse;
 
@@ -90,17 +95,25 @@ export function useTripSeats(tripId: string) {
         setData({ seatConfig, bookedSeatIds });
       }
     } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
       const message =
         err instanceof Error ? err.message : "Unable to load seats.";
       setError(message);
       setData(null);
     } finally {
-      setIsLoading(false);
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setIsLoading(false);
+      }
     }
   }, [tripId]);
 
   useEffect(() => {
-    loadSeats();
+    void loadSeats();
+    return () => {
+      activeRequestRef.current?.abort();
+      activeRequestRef.current = null;
+    };
   }, [loadSeats]);
 
   return {

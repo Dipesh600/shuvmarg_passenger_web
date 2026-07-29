@@ -5,14 +5,20 @@
  *
  * Responsibilities:
  *  - Prepend base URL from NEXT_PUBLIC_API_URL (never hardcoded)
- *  - Attach Authorization header from localStorage when a token exists
+ *  - Attach the in-memory Authorization token when one exists
  *  - Always send X-App-Source: passenger (required by multi-role backend)
  *  - Normalize API errors into a consistent { message, errorCode } shape
  *
  * Security notes:
- *  - Tokens are read lazily (at call time) — never captured at module init
- *  - No automatic retry/refresh here; the AuthContext handles token rotation
+ *  - Access tokens are never persisted in browser storage
+ *  - One coordinated refresh retry is allowed for authenticated 401 responses
  */
+
+import {
+  clearAccessToken,
+  getAccessToken,
+  setAccessToken,
+} from "./access-token-store";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -58,6 +64,43 @@ interface RequestOptions {
   token?: string | null;
   /** Skip attaching Authorization header entirely */
   skipAuth?: boolean;
+  signal?: AbortSignal;
+  retryAuth?: boolean;
+}
+
+let refreshInFlight: Promise<string | null> | null = null;
+
+export async function refreshAccessTokenOnce(): Promise<string | null> {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Source": "passenger",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        clearAccessToken();
+        return null;
+      }
+      const data = (await response.json()) as { accessToken?: string };
+      if (!data.accessToken) {
+        clearAccessToken();
+        return null;
+      }
+      setAccessToken(data.accessToken);
+      return data.accessToken;
+    } catch {
+      clearAccessToken();
+      return null;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
 }
 
 /**
@@ -70,7 +113,13 @@ export async function request<T = unknown>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { method = "GET", body, skipAuth = false } = options;
+  const {
+    method = "GET",
+    body,
+    skipAuth = false,
+    signal,
+    retryAuth = true,
+  } = options;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -78,13 +127,10 @@ export async function request<T = unknown>(
   };
 
   if (!skipAuth) {
-    // Read at call time — never at module init — so hot token changes are respected
     const token =
       options.token !== undefined
         ? options.token
-        : typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
+        : getAccessToken();
 
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
@@ -95,6 +141,7 @@ export async function request<T = unknown>(
     method,
     headers,
     credentials: "include",
+    signal,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
@@ -107,6 +154,16 @@ export async function request<T = unknown>(
   }
 
   if (!response.ok) {
+    if (response.status === 401 && !skipAuth && retryAuth) {
+      const refreshedToken = await refreshAccessTokenOnce();
+      if (refreshedToken) {
+        return request<T>(path, {
+          ...options,
+          token: refreshedToken,
+          retryAuth: false,
+        });
+      }
+    }
     throw new ApiRequestError({
       message:
         (data.message as string) ||
