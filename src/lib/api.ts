@@ -30,6 +30,7 @@ export interface ApiError {
   message: string;
   errorCode?: string;
   retryAfterMinutes?: number;
+  retryAfterSeconds?: number;
   statusCode: number;
 }
 
@@ -37,6 +38,7 @@ export interface ApiError {
 export class ApiRequestError extends Error {
   errorCode?: string;
   retryAfterMinutes?: number;
+  retryAfterSeconds?: number;
   statusCode: number;
 
   constructor(info: ApiError) {
@@ -44,6 +46,7 @@ export class ApiRequestError extends Error {
     this.name = "ApiRequestError";
     this.errorCode = info.errorCode;
     this.retryAfterMinutes = info.retryAfterMinutes;
+    this.retryAfterSeconds = info.retryAfterSeconds;
     this.statusCode = info.statusCode;
   }
 }
@@ -111,6 +114,7 @@ export async function request<T = unknown>(
         "Something went wrong. Please try again.",
       errorCode: data.errorCode as string | undefined,
       retryAfterMinutes: data.retryAfterMinutes as number | undefined,
+      retryAfterSeconds: data.retryAfterSeconds as number | undefined,
       statusCode: response.status,
     });
   }

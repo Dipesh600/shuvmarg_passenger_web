@@ -52,10 +52,32 @@ export function useTripSeats(tripId: string) {
     setError(null);
 
     try {
-      const response = await request<GetSeatsResponse>("/api/ticket/getSeats", {
-        method: "POST",
+      const requestOptions = {
+        method: "POST" as const,
         body: { tripId },
-      });
+      };
+      let response: GetSeatsResponse;
+
+      try {
+        response = await request<GetSeatsResponse>(
+          "/api/ticket/getSeats",
+          requestOptions
+        );
+      } catch (err: unknown) {
+        const statusCode =
+          typeof err === "object" && err !== null && "statusCode" in err
+            ? (err as { statusCode: number }).statusCode
+            : null;
+
+        if (statusCode !== 401 && statusCode !== 403) throw err;
+
+        // Identity is optional for public seat availability. If a saved token
+        // is stale, retry anonymously instead of blocking the seat map.
+        response = await request<GetSeatsResponse>("/api/ticket/getSeats", {
+          ...requestOptions,
+          skipAuth: true,
+        });
+      }
 
       const seatConfig = response.data?.seatConfig ?? null;
       const bookedSeatIds = extractBookedSeatIds(response.data ?? {});
@@ -70,21 +92,7 @@ export function useTripSeats(tripId: string) {
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Unable to load seats.";
-      // Seat availability is public. Authentication errors only occur when a
-      // stale or invalid saved token was supplied with the optional session.
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "statusCode" in err &&
-        ((err as { statusCode: number }).statusCode === 401 ||
-          (err as { statusCode: number }).statusCode === 403)
-      ) {
-        setError(
-          "Your saved session is no longer valid. Sign in again to refresh seat availability."
-        );
-      } else {
-        setError(message);
-      }
+      setError(message);
       setData(null);
     } finally {
       setIsLoading(false);

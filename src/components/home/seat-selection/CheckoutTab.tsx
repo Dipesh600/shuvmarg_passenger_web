@@ -3,7 +3,7 @@ import React from 'react';
 interface CheckoutTabProps {
   selectedMethod: string;
   setSelectedMethod: (val: string) => void;
-  selectedSeats: any[];
+  selectedSeats: Array<{ id: string; label: string; price: number }>;
   totalPrice: number;
   paymentFee: number;
   finalPrice: number;
@@ -19,7 +19,7 @@ export default function CheckoutTab({
 }: CheckoutTabProps) {
   return (
     <div className="w-full flex h-full min-h-0 bg-transparent">
-      <div className="max-w-6xl mx-auto w-full p-8 flex flex-col min-h-0">
+      <div className="w-full px-4 md:px-6 py-4 md:py-6 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto pr-4 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-20">
           
           {/* Left Column - Payment Methods */}
@@ -41,7 +41,7 @@ export default function CheckoutTab({
 
               {/* eSewa */}
               <label className={`flex items-center gap-4 p-5 border-b border-[#E2D6C6] cursor-pointer transition-colors ${selectedMethod === 'esewa' ? 'bg-[#F8F1E3]' : 'hover:bg-neutral-50'}`}>
-                <input type="radio" name="paymentMethod" value="esewa" checked={selectedMethod === 'esewa'} onChange={(e) => setSelectedMethod(e.target.value)} className="w-5 h-5 text-[#7A1D1B] focus:ring-[#7A1D1B]" />
+                <input type="radio" name="paymentMethod" value="esewa" checked={selectedMethod === 'esewa'} onChange={(e) => setSelectedMethod(e.target.value)} className="w-5 h-5 text-[#D94328] focus:ring-[#D94328]" />
                 <div className="w-16 h-12 bg-white rounded border border-neutral-200 p-2 flex items-center justify-center shrink-0 shadow-sm">
                   <img src="/payment/esewa.png" alt="eSewa" className="w-full h-full object-contain" />
                 </div>
@@ -67,11 +67,13 @@ export default function CheckoutTab({
               </label>
             </div>
 
-            <p className="text-[13px] text-neutral-600 font-medium pt-2">The e-ticket will be automatically sent to you by SMS and email, once the payment is confirmed.</p>
+            <p className="text-[13px] text-neutral-600 font-medium pt-2">
+              Your confirmed ticket will be available in your Shuvmarg account after payment.
+            </p>
           </div>
 
           {/* Right Column - Summaries */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-6 mt-4 lg:mt-12">
             {/* Fare Breakup */}
             <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#D8C5A8] overflow-hidden">
               <div className="p-6 space-y-4">
@@ -86,10 +88,10 @@ export default function CheckoutTab({
                   <span className="text-neutral-600">Convenience Fee</span>
                   <span className="font-bold text-neutral-900">Rs. {paymentFee}</span>
                 </div>
-                
+
                 <div className="pt-4 border-t border-neutral-200 flex justify-between items-end">
                   <span className="text-[18px] font-black text-neutral-900">Total Amount</span>
-                  <span className="text-[24px] font-black text-[#7A1D1B]">Rs. {finalPrice}</span>
+                  <span className="text-[24px] font-black text-[#D94328]">Rs. {finalPrice}</span>
                 </div>
               </div>
             </div>

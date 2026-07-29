@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { PassengerSeatMap } from './PassengerSeatMap';
 import { SeatIcon } from './SeatIcon';
+import { ImageLightbox } from './ImageLightbox';
 
 interface SeatMapTabProps {
   trip: any;
@@ -10,8 +11,8 @@ interface SeatMapTabProps {
   selectedSeats: any[];
   bookedSeatIds: string[];
   handleToggleSeat: (seatId: string, label: string, price: number) => void;
-  mockBoardingPoints: { name: string; time?: string }[];
-  mockDroppingPoints: { name: string; time?: string }[];
+  boardingPoints: { name?: string; location?: string; time?: string }[];
+  droppingPoints: { name?: string; location?: string; time?: string }[];
 }
 
 export default function SeatMapTab({
@@ -22,8 +23,8 @@ export default function SeatMapTab({
   selectedSeats,
   bookedSeatIds,
   handleToggleSeat,
-  mockBoardingPoints,
-  mockDroppingPoints
+  boardingPoints,
+  droppingPoints
 }: SeatMapTabProps) {
   const [isMobileDetailsExpanded, setIsMobileDetailsExpanded] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
@@ -33,6 +34,7 @@ export default function SeatMapTab({
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const [activeSection, setActiveSection] = useState<string>('amenities');
+  const [lightboxState, setLightboxState] = useState<{isOpen: boolean, index: number}>({ isOpen: false, index: 0 });
 
   // Mobile Drag logic for details pane
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
@@ -136,7 +138,7 @@ export default function SeatMapTab({
 
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-neutral-200 border-t-[#7A1D1B] rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-neutral-200 border-t-[#D94328] rounded-full animate-spin" />
         </div>
       ) : error ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
@@ -176,7 +178,7 @@ export default function SeatMapTab({
         onScroll={() => {
           const container = rightPaneRef.current;
           if (!container) return;
-          const sections = ['amenities','cancellation','points','route','reviews','policies'];
+          const sections = ['amenities','cancellation','route','points','reviews','policies'];
           let current = sections[0];
           for (const id of sections) {
             const el = sectionRefs.current[id];
@@ -219,7 +221,13 @@ export default function SeatMapTab({
           {trip.busDetail.fleetImages.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {trip.busDetail.fleetImages.map((img: string, i: number) => (
-                <img key={i} src={img} alt="Bus" className="w-[200px] h-[120px] object-cover rounded-xl border-2 border-[#D94328]/50 flex-shrink-0" />
+                <img
+                  key={i}
+                  src={img}
+                  alt="Bus"
+                  className="w-[200px] h-[120px] object-cover rounded-xl border-2 border-[#D94328]/50 flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setLightboxState({ isOpen: true, index: i })}
+                />
               ))}
             </div>
           ) : (
@@ -235,8 +243,8 @@ export default function SeatMapTab({
           {[
             { id: 'amenities', label: 'Amenities' },
             { id: 'cancellation', label: 'Cancellation Policy' },
-            { id: 'points', label: 'Boarding & Dropping' },
             { id: 'route', label: 'Bus Route' },
+            { id: 'points', label: 'Boarding & Dropping' },
             { id: 'reviews', label: 'Reviews' },
             { id: 'policies', label: 'Other Policies' },
           ].map(tab => (
@@ -246,7 +254,7 @@ export default function SeatMapTab({
               onClick={() => scrollToSection(tab.id)}
               className={`py-3 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
                 activeSection === tab.id
-                  ? 'border-[#7A1D1B] text-[#7A1D1B]'
+                  ? 'border-[#D94328] text-[#D94328]'
                   : 'border-transparent text-neutral-500 hover:text-neutral-700'
               }`}
             >
@@ -277,25 +285,51 @@ export default function SeatMapTab({
 
           {/* Cancellation */}
           <section ref={el => { sectionRefs.current['cancellation'] = el; }}>
-            <div className="bg-[#7A1D1B]/5 rounded-2xl p-6 border-2 border-[#D94328]/50">
+            <div className="bg-[#D94328]/5 rounded-2xl p-6 border-2 border-[#D94328]/50">
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-full bg-[#7A1D1B] text-white flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-[#D94328] text-white flex items-center justify-center">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
                 <h3 className="text-[18px] font-bold text-neutral-900">Cancellation Policy</h3>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-[#7A1D1B]/10">
+                <div className="flex items-center justify-between py-2 border-b border-[#D94328]/10">
                   <span className="text-[14px] text-neutral-600">Before 24 hours of departure</span>
                   <span className="text-[14px] font-bold text-neutral-900">90% Refund</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-[#7A1D1B]/10">
+                <div className="flex items-center justify-between py-2 border-b border-[#D94328]/10">
                   <span className="text-[14px] text-neutral-600">Between 12 to 24 hours</span>
                   <span className="text-[14px] font-bold text-neutral-900">50% Refund</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <span className="text-[14px] text-neutral-600">Within 12 hours of departure</span>
                   <span className="text-[14px] font-bold text-red-500">No Refund</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Route Overview */}
+          <section ref={el => { sectionRefs.current['route'] = el; }}>
+            <div className="bg-[#F8F1E3] rounded-2xl p-6 border-2 border-[#D94328]/50">
+              <h3 className="text-[18px] font-bold text-neutral-900 mb-5">Route Overview</h3>
+              <div className="flex items-center justify-between max-w-sm mx-auto">
+                <div className="text-center">
+                  <p className="text-[18px] font-black text-neutral-900">{trip.routeDetail?.from}</p>
+                  <p className="text-[13px] text-neutral-500 font-medium mt-1">{trip.departureTime}</p>
+                </div>
+                <div className="flex-1 px-4 relative flex items-center justify-center">
+                  <div className="w-full border-t-2 border-dashed border-[#D94328]/40"></div>
+                  <div className="absolute bg-[#F8F1E3] px-2 text-[12px] font-bold text-[#D94328] flex flex-col items-center">
+                    <span>{trip.routeDetail?.duration || 'N/A'}</span>
+                    {trip.routeDetail?.distance && (
+                      <span className="text-[10px] font-medium text-neutral-500">{trip.routeDetail.distance}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-[18px] font-black text-neutral-900">{trip.routeDetail?.to}</p>
+                  <p className="text-[13px] text-neutral-500 font-medium mt-1">{trip.arrivalTime}</p>
                 </div>
               </div>
             </div>
@@ -310,7 +344,7 @@ export default function SeatMapTab({
                   Boarding Points
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-neutral-200 before:to-transparent">
-                  {mockBoardingPoints.map((bp, i) => (
+                  {boardingPoints.map((bp, i) => (
                     <div key={i} className="relative flex items-center justify-between group">
                       <div className="flex items-center">
                         <div className="absolute left-0 w-4 h-4 rounded-full  border-2 border-neutral-300 group-hover:border-green-500 transition-colors z-10 -ml-1"></div>
@@ -330,7 +364,7 @@ export default function SeatMapTab({
                   Dropping Points
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-neutral-200 before:to-transparent">
-                  {mockDroppingPoints.map((dp, i) => (
+                  {droppingPoints.map((dp, i) => (
                     <div key={i} className="relative flex items-center justify-between group">
                       <div className="flex items-center">
                         <div className="absolute left-0 w-4 h-4 rounded-full  border-2 border-neutral-300 group-hover:border-red-500 transition-colors z-10 -ml-1"></div>
@@ -346,62 +380,29 @@ export default function SeatMapTab({
             </div>
           </section>
 
-          {/* Route Overview */}
-          <section ref={el => { sectionRefs.current['route'] = el; }}>
-            <div className="bg-[#F8F1E3] rounded-2xl p-6 border-2 border-[#D94328]/50">
-              <h3 className="text-[18px] font-bold text-neutral-900 mb-5">Route Overview</h3>
-              <div className="flex items-center justify-between max-w-sm mx-auto">
-                <div className="text-center">
-                  <p className="text-[18px] font-black text-neutral-900">{trip.routeDetail?.from}</p>
-                  <p className="text-[13px] text-neutral-500 font-medium mt-1">{trip.departureTime}</p>
-                </div>
-                <div className="flex-1 px-4 relative flex items-center justify-center">
-                  <div className="w-full border-t-2 border-dashed border-neutral-300"></div>
-                  <div className="absolute  px-2 text-[12px] font-bold text-neutral-400">
-                    Duration
-                  </div>
-                </div>
-                <div className="text-center">
-                  <p className="text-[18px] font-black text-neutral-900">{trip.routeDetail?.to}</p>
-                  <p className="text-[13px] text-neutral-500 font-medium mt-1">{trip.arrivalTime}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Reviews Summary */}
           <section ref={el => { sectionRefs.current['reviews'] = el; }}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-[18px] font-bold text-neutral-900">Passenger Reviews</h3>
-              <button className="text-[13px] font-bold text-[#7A1D1B] hover:underline">View All</button>
+              <button className="text-[14px] font-bold text-[#D94328] hover:text-[#C93522] transition-colors">
+                View All
+              </button>
             </div>
-            <div className="flex gap-6 items-center  p-6 rounded-2xl border-2 border-[#D94328]/50 shadow-sm">
-              <div className="text-center px-6 border-r border-neutral-200">
+            <div className="flex flex-col sm:flex-row gap-6 items-center p-6 rounded-2xl border-2 border-[#D94328]/50 shadow-sm">
+              <div className="text-center px-6 sm:border-r border-neutral-200">
                 <div className="text-[40px] font-black text-neutral-900 leading-none mb-2">{trip.busDetail.averageRating?.toFixed(1) || '0.0'}</div>
                 <div className="flex items-center gap-1 justify-center mb-1">
                   {[1,2,3,4,5].map(star => (
                     <svg key={star} className={`w-4 h-4 ${star <= (trip.busDetail.averageRating || 0) ? 'text-[#C99A4A]' : 'text-neutral-200'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                   ))}
                 </div>
-                <p className="text-[12px] font-medium text-neutral-500">Ratings</p>
+                <p className="text-[12px] font-medium text-neutral-500">Overall Rating</p>
               </div>
-              <div className="flex-1 grid grid-cols-2 gap-4">
-                {[
-                  { label: 'Punctuality', score: 4.5 },
-                  { label: 'Cleanliness', score: 4.8 },
-                  { label: 'Staff Behavior', score: 4.2 },
-                  { label: 'Comfort', score: 4.6 }
-                ].map((stat, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-[12px] font-medium mb-1">
-                      <span className="text-neutral-600">{stat.label}</span>
-                      <span className="text-neutral-900">{stat.score.toFixed(1)}</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#C99A4A] rounded-full" style={{ width: `${(stat.score / 5) * 100}%` }}></div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex-1 text-center sm:text-left">
+                <h4 className="text-[15px] font-bold text-neutral-900 mb-1">Trusted by Passengers</h4>
+                <p className="text-[13px] text-neutral-600 leading-relaxed">
+                  These ratings reflect the overall experience of passengers who have travelled with this operator. Book with confidence.
+                </p>
               </div>
             </div>
           </section>
@@ -425,7 +426,7 @@ export default function SeatMapTab({
                     'Extra luggage will be charged at standard rates.'
                   ].map((policy, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-[#7A1D1B] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      <svg className="w-5 h-5 text-[#D94328] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       <span className="text-[13px] text-neutral-600 leading-relaxed">{policy}</span>
                     </li>
                   ))}
@@ -453,6 +454,13 @@ export default function SeatMapTab({
         </div>
         </div>
       </div>
+
+      <ImageLightbox
+        images={trip.busDetail.fleetImages || []}
+        initialIndex={lightboxState.index}
+        isOpen={lightboxState.isOpen}
+        onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

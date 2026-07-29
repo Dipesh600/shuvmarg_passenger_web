@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ApiRequestError } from "@/lib/api";
 import { initiateEsewaCheckout } from "@/lib/booking";
 import { submitEsewaCheckout } from "@/lib/esewa";
+import { useToast } from "@/context/ToastContext";
 
 interface SeatSelectionDrawerProps {
   isOpen: boolean;
@@ -21,31 +22,33 @@ interface SeatSelectionDrawerProps {
 }
 
 export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDrawerProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState<{id: string, label: string, price: number}[]>([]);
   const [activeTab, setActiveTab] = useState<'seats' | 'points' | 'passenger' | 'checkout'>('seats');
   
   const { seatConfig, bookedSeatIds, isLoading, error, refetch } = useTripSeats(trip._id);
   const [isPreparing, setIsPreparing] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [showOtpGate, setShowOtpGate] = useState(false);
   const [passwordSetupRecommended, setPasswordSetupRecommended] = useState(false);
 
   // Boarding and Dropping point state
-  const [boardingPoint, setBoardingPoint] = useState<string>('');
-  const [droppingPoint, setDroppingPoint] = useState<string>('');
+  const initialBoardingPoint = trip.busDetail.boardingPoints?.[0]?.name || "";
+  const initialDroppingPoint = trip.busDetail.droppingPoints?.[0]?.name || "";
+  const [boardingPoint, setBoardingPoint] = useState(initialBoardingPoint);
+  const [droppingPoint, setDroppingPoint] = useState(initialDroppingPoint);
 
   const [expandedPassenger, setExpandedPassenger] = useState<number>(0);
   
   // Passenger Form State
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [sendWhatsapp, setSendWhatsapp] = useState(true);
+  const [phone, setPhone] = useState(user?.phone || "");
   const [passengers, setPassengers] = useState<Record<string, { name: string; gender: string }>>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [selectedMethod, setSelectedMethod] = useState<string>('esewa');
+  const isPreparingRef = useRef(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -81,12 +84,30 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     touchStartY.current = null;
   };
 
-  const handleHoldExpired = useCallback(() => {
-    setCheckoutError("Your seven-minute seat hold expired. Please select your seats again.");
+  const resetAttemptState = useCallback(() => {
     setSelectedSeats([]);
     setActiveTab("seats");
+    setBoardingPoint(initialBoardingPoint);
+    setDroppingPoint(initialDroppingPoint);
+    setExpandedPassenger(0);
+    setPhone(user?.phone || "");
+    setPassengers({});
+    setFormErrors({});
+    setSelectedMethod("esewa");
+    setShowOtpGate(false);
+    setPasswordSetupRecommended(false);
+    isPreparingRef.current = false;
+    setIsPreparing(false);
+  }, [initialBoardingPoint, initialDroppingPoint, user?.phone]);
+
+  const handleHoldExpired = useCallback(() => {
+    resetAttemptState();
+    showToast(
+      "Your seven-minute seat hold expired. Please select your seats again.",
+      "error"
+    );
     void refetch();
-  }, [refetch]);
+  }, [refetch, resetAttemptState, showToast]);
 
   const {
     hold,
@@ -94,6 +115,11 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     prepare: prepareHold,
     release: releaseHold,
   } = useBookingHold(handleHoldExpired);
+
+  const abandonBookingSession = useCallback(() => {
+    resetAttemptState();
+    void releaseHold().catch(() => undefined);
+  }, [releaseHold, resetAttemptState]);
   
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -101,31 +127,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     return `${m}:${s}`;
   };
 
-  const mockBoardingPoints = trip.busDetail.boardingPoints?.length > 0 
-    ? trip.busDetail.boardingPoints 
-    : [
-        { name: "Kalanki", time: "06:30 AM" },
-        { name: "Swayambhu", time: "06:45 AM" },
-        { name: "Balaju", time: "07:00 AM" }
-      ];
-
-  const mockDroppingPoints = trip.busDetail.droppingPoints?.length > 0 
-    ? trip.busDetail.droppingPoints 
-    : [
-        { name: "Prithvi Chowk", time: "02:30 PM" },
-        { name: "Tourist Bus Park", time: "02:45 PM" },
-        { name: "Lakeside", time: "03:00 PM" }
-      ];
-
-  // Initialize points if not set
-  useEffect(() => {
-    if (!boardingPoint && mockBoardingPoints.length > 0) {
-      setBoardingPoint(mockBoardingPoints[0].name);
-    }
-    if (!droppingPoint && mockDroppingPoints.length > 0) {
-      setDroppingPoint(mockDroppingPoints[0].name);
-    }
-  }, [trip]);
+  const boardingPoints = trip.busDetail.boardingPoints || [];
+  const droppingPoints = trip.busDetail.droppingPoints || [];
 
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
@@ -141,20 +144,28 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       const timer = setTimeout(() => setIsVisible(true), 10);
       return () => clearTimeout(timer);
     } else {
-      void releaseHold().catch(() => undefined);
+      abandonBookingSession();
       setIsVisible(false);
       const timer = setTimeout(() => setIsRendered(false), 500);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, releaseHold]);
+  }, [abandonBookingSession, isOpen]);
 
   const handleClose = useCallback(() => {
-    void releaseHold().catch(() => undefined);
+    if (closeTimerRef.current) return;
+    abandonBookingSession();
     setIsVisible(false);
-    setTimeout(() => {
+    closeTimerRef.current = setTimeout(() => {
+      closeTimerRef.current = null;
       onClose();
     }, 500);
-  }, [onClose, releaseHold]);
+  }, [abandonBookingSession, onClose]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
 
   // Close on escape key
   useEffect(() => {
@@ -168,23 +179,49 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   if (!isRendered || !mounted) return null;
 
   const handleToggleSeat = (seatId: string, label: string, price: number) => {
-    if (hold) void releaseHold().catch(() => undefined);
-    setCheckoutError(null);
-    setSelectedSeats(prev => {
-      const exists = prev.find(s => s.id === seatId);
-      if (exists) {
-        // Also remove passenger data for this seat
-        setPassengers(p => {
-          const newP = { ...p };
-          delete newP[seatId];
-          return newP;
+    if (hold) {
+      isPreparingRef.current = true;
+      setIsPreparing(true);
+      void releaseHold()
+        .catch(() => undefined)
+        .finally(() => {
+          isPreparingRef.current = false;
+          setIsPreparing(false);
         });
-        return prev.filter(s => s.id !== seatId);
+    }
+
+    const exists = selectedSeats.some(s => s.id === seatId);
+
+    if (exists) {
+      // Remove seat and passenger data
+      setSelectedSeats(prev => prev.filter(s => s.id !== seatId));
+      setPassengers(p => {
+        const newP = { ...p };
+        delete newP[seatId];
+        return newP;
+      });
+    } else {
+      // Add seat
+      if (selectedSeats.length >= 6) {
+        showToast("You can only book up to 6 seats at once.", "error");
+        return;
       }
-      // Max 6 seats limit
-      if (prev.length >= 6) return prev;
-      return [...prev, { id: seatId, label, price }];
-    });
+      if (
+        selectedSeats.length === 0 &&
+        isAuthenticated &&
+        user &&
+        (user.name || user.gender)
+      ) {
+        setPassengers((current) => ({
+          ...current,
+          [seatId]: {
+            name: user.name || "",
+            gender: user.gender || "",
+          },
+        }));
+      }
+      setSelectedSeats(prev => [...prev, { id: seatId, label, price }]);
+    }
   };
 
   const validatePassengerForm = () => {
@@ -193,11 +230,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     // Phone validation (exactly 10 digits for Nepal)
     if (!phone || !/^\d{10}$/.test(phone.replace(/\s+/g, ''))) {
       newErrors.phone = 'Please enter a valid 10-digit phone number';
-    }
-
-    // Email validation (optional but must be valid if entered)
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
     }
 
     // Passenger details validation
@@ -224,22 +256,39 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const authoritativePrice = hold?.originalAmount ?? totalPrice;
 
   const openSecureCheckout = async () => {
-    setCheckoutError(null);
+    if (hold) {
+      setActiveTab("checkout");
+      return;
+    }
+    if (isPreparingRef.current) return;
+    isPreparingRef.current = true;
     setIsPreparing(true);
     try {
-      await prepareHold(trip._id, selectedSeats.map((seat) => seat.label));
-      setActiveTab("checkout");
+      const prepared = await prepareHold(
+        trip._id,
+        selectedSeats.map((seat) => seat.label)
+      );
+      if (prepared) setActiveTab("checkout");
     } catch (err) {
-      setCheckoutError(
+      if (err instanceof Error && err.name === "AbortError") return;
+      showToast(
         err instanceof ApiRequestError
           ? err.message
-          : "We could not reserve those seats. Please refresh and try again."
+          : "We could not reserve those seats. Please refresh and try again.",
+        "error"
       );
-      if (err instanceof ApiRequestError && err.statusCode === 409) {
-        setActiveTab("seats");
+      if (
+        err instanceof ApiRequestError &&
+        (err.statusCode === 409 ||
+          ["SEAT_TEMPORARILY_HELD", "BOOKING_HOLD_INVALID", "BOOKING_HOLD_MISMATCH"].includes(
+            err.errorCode || ""
+          ))
+      ) {
+        resetAttemptState();
         void refetch();
       }
     } finally {
+      isPreparingRef.current = false;
       setIsPreparing(false);
     }
   };
@@ -247,21 +296,24 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const startEsewaPayment = async () => {
     if (!hold) return;
     if (secondsRemaining < 60) {
-      setCheckoutError(
-        "There is not enough time left to complete payment. Please reserve the seats again."
+      showToast(
+        "There is not enough time left to complete payment. Please reserve the seats again.",
+        "warning"
       );
       await releaseHold().catch(() => undefined);
-      setActiveTab("seats");
+      resetAttemptState();
+      void refetch();
       return;
     }
-    setCheckoutError(null);
+    if (isPreparingRef.current) return;
+    isPreparingRef.current = true;
     setIsPreparing(true);
     try {
-      const selectedBoarding = mockBoardingPoints.find(
-        (point) => point.name === boardingPoint
+      const selectedBoarding = boardingPoints.find(
+        (point: { name: string; time?: string; location?: string }) => point.name === boardingPoint
       );
-      const selectedDropping = mockDroppingPoints.find(
-        (point) => point.name === droppingPoint
+      const selectedDropping = droppingPoints.find(
+        (point: { name: string; time?: string; location?: string }) => point.name === droppingPoint
       );
       const checkout = await initiateEsewaCheckout({
         tempBookingId: hold.tempBookingId,
@@ -285,11 +337,24 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       });
       submitEsewaCheckout(checkout);
     } catch (err) {
-      setCheckoutError(
+      showToast(
         err instanceof ApiRequestError
           ? err.message
-          : "We could not start eSewa payment. No payment was taken."
+          : "We could not start eSewa payment. No payment was taken.",
+        "error"
       );
+      if (
+        err instanceof ApiRequestError &&
+        ["BOOKING_HOLD_INVALID", "BOOKING_HOLD_MISMATCH"].includes(
+          err.errorCode || ""
+        )
+      ) {
+        await releaseHold().catch(() => undefined);
+        resetAttemptState();
+        void refetch();
+      }
+    } finally {
+      isPreparingRef.current = false;
       setIsPreparing(false);
     }
   };
@@ -339,13 +404,14 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
             </h2>
           </div>
           
-          <div className="md:hidden shrink-0 ml-2">
-            <span className="text-[14px] font-bold text-[#7A1D1B]">
-              {activeTab === 'seats' && 'Select seats'}
-              {activeTab === 'points' && 'Board/Drop point'}
-              {activeTab === 'passenger' && 'Passenger info'}
-              {activeTab === 'checkout' && 'Payment'}
-            </span>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0 ml-2">
+            {hold && (
+              <div className="flex items-center gap-1.5 bg-[#D94328]/10 px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-[#D94328]/20">
+                <span className="text-[15px] md:text-[16px] font-black text-[#D94328] whitespace-nowrap tracking-wider">
+                  {formatTime(secondsRemaining)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -356,15 +422,23 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               { id: "seats", label: "Select seats" },
               { id: "points", label: "Board/Drop point" },
               { id: "passenger", label: "Passenger info" },
-              ...(activeTab === 'checkout' ? [{ id: "checkout", label: "Payment" }] : []),
+              ...(hold ? [{ id: "checkout", label: "Payment" }] : []),
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => {
+                  if (tab.id === "points" && selectedSeats.length === 0) return;
+                  if (
+                    tab.id === "passenger" &&
+                    (selectedSeats.length === 0 || !boardingPoint || !droppingPoint)
+                  ) return;
+                  if (tab.id === "checkout" && !hold) return;
+                  setActiveTab(tab.id as typeof activeTab);
+                }}
                 className={[
                   "py-4 text-[14px] font-bold border-b-2 transition-colors whitespace-nowrap",
-                  activeTab === tab.id 
-                    ? "border-[#7A1D1B] text-[#7A1D1B]" 
+                  activeTab === tab.id
+                    ? "border-[#D94328] text-[#D94328]"
                     : "border-transparent text-neutral-500 hover:text-neutral-700"
                 ].filter(Boolean).join(" ")}
               >
@@ -406,8 +480,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               selectedSeats={selectedSeats}
               bookedSeatIds={bookedSeatIds}
               handleToggleSeat={handleToggleSeat}
-              mockBoardingPoints={mockBoardingPoints}
-              mockDroppingPoints={mockDroppingPoints}
+              boardingPoints={boardingPoints}
+              droppingPoints={droppingPoints}
             />
           )}
           {activeTab === 'points' && (
@@ -416,8 +490,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               setBoardingPoint={setBoardingPoint}
               droppingPoint={droppingPoint}
               setDroppingPoint={setDroppingPoint}
-              mockBoardingPoints={mockBoardingPoints}
-              mockDroppingPoints={mockDroppingPoints}
+              boardingPoints={boardingPoints}
+              droppingPoints={droppingPoints}
             />
           )}
           {activeTab === 'passenger' && (
@@ -425,10 +499,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               selectedSeats={selectedSeats}
               phone={phone}
               setPhone={setPhone}
-              email={email}
-              setEmail={setEmail}
-              sendWhatsapp={sendWhatsapp}
-              setSendWhatsapp={setSendWhatsapp}
               passengers={passengers}
               setPassengers={setPassengers}
               formErrors={formErrors}
@@ -438,8 +508,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               trip={trip}
               boardingPoint={boardingPoint}
               droppingPoint={droppingPoint}
-              mockBoardingPoints={mockBoardingPoints}
-              mockDroppingPoints={mockDroppingPoints}
+              boardingPoints={boardingPoints}
+              droppingPoints={droppingPoints}
             />
           )}
           {activeTab === 'checkout' && (
@@ -477,11 +547,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                   </p>
                   <div className="flex items-baseline gap-2">
                     <h4 className="text-[20px] md:text-[24px] font-black text-neutral-900 leading-none">Rs. {activeTab === 'checkout' ? finalPrice : authoritativePrice}</h4>
-                    {hold && (
-                      <span className="text-xs font-bold text-[#7A1D1B]">
-                        Held {formatTime(secondsRemaining)}
-                      </span>
-                    )}
                   </div>
                 </div>
                 <button 
@@ -503,18 +568,13 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                     }
                   }}
                   disabled={isPreparing || (activeTab === 'points' && (!boardingPoint || !droppingPoint)) || (activeTab === 'checkout' && !hold)}
-                  className="h-[44px] md:h-[48px] px-5 md:px-8 bg-[#7A1D1B] text-white rounded-xl text-[13px] md:text-[15px] font-bold hover:bg-[#5C1414] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+                  className="h-[44px] md:h-[48px] px-5 md:px-8 bg-[#D94328] text-white rounded-xl text-[13px] md:text-[15px] font-bold hover:bg-[#C93522] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
                 >
                   {isPreparing && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   <span className="hidden md:inline">{activeTab === 'seats' ? 'Continue to Book' : activeTab === 'points' ? 'Fill passenger details' : activeTab === 'passenger' ? 'Proceed to Payment' : (selectedMethod ? 'Pay via ' + selectedMethod.charAt(0).toUpperCase() + selectedMethod.slice(1) : 'Pay Securely')}</span>
                   <span className="md:hidden">{activeTab === 'seats' ? 'Continue' : activeTab === 'points' ? 'Details' : activeTab === 'passenger' ? 'Payment' : (selectedMethod ? 'Pay' : 'Pay Securely')}</span>
                 </button>
               </div>
-            {checkoutError && (
-              <p className="mt-2 text-right text-[12px] font-semibold text-red-700">
-                {checkoutError}
-              </p>
-            )}
             {activeTab === 'checkout' && passwordSetupRecommended && (
               <p className="mt-2 text-right text-[11px] font-medium text-neutral-500">
                 You can add a password and complete your profile after booking.

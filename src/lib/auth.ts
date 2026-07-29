@@ -45,6 +45,7 @@ export interface SendOtpResponse {
 export interface VerifyOtpResponse {
   status: boolean;
   message: string;
+  verificationToken?: string;
 }
 
 export interface CompleteRegistrationResponse {
@@ -146,9 +147,10 @@ export async function completeRegistration(payload: {
   name: string;
   password: string;
   address: string;
-  gender: "male" | "female";
+  gender: "male" | "female" | "other";
   email?: string;
   referralCode?: string;
+  verificationToken?: string;
 }): Promise<CompleteRegistrationResponse> {
   return request<CompleteRegistrationResponse>("/api/completeRegistration", {
     method: "POST",
