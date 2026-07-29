@@ -6,8 +6,8 @@
  * The AuthContext and page components call these.
  *
  * Token storage:
- *   accessToken  → localStorage["accessToken"]
- *   refreshToken → localStorage["refreshToken"]
+ *   accessToken  → in-memory only
+ *   refreshToken → HttpOnly cookie
  *
  * Security:
  *   - Tokens are written/cleared only through saveTokens() / clearTokens()
@@ -15,21 +15,25 @@
  *   - Password fields never logged
  */
 
-import { request } from "./api";
+import { refreshAccessTokenOnce, request } from "./api";
+import {
+  clearAccessToken,
+  getAccessToken as readAccessToken,
+  setAccessToken,
+} from "./access-token-store";
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 
 export function saveTokens(accessToken: string): void {
-  localStorage.setItem("accessToken", accessToken);
+  setAccessToken(accessToken);
 }
 
 export function clearTokens(): void {
-  localStorage.removeItem("accessToken");
+  clearAccessToken();
 }
 
 export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("accessToken");
+  return readAccessToken();
 }
 
 // refreshToken is stored in HttpOnly cookie now
@@ -163,7 +167,7 @@ export async function completeRegistration(payload: {
 
 /**
  * Password login. Backend accepts phone or email as `emailOrPhone`.
- * On success, saves tokens to localStorage and returns the full response.
+ * On success, keeps the access token in memory and returns the full response.
  */
 export async function login(
   phoneOrEmail: string,
@@ -185,26 +189,12 @@ export async function login(
 // ── Session management ────────────────────────────────────────────────────────
 
 /**
- * Exchange the stored refresh token for a new access + refresh token pair.
- * The old refresh token is invalidated (rotation). Saves new tokens.
+ * Restore or rotate the session through the HttpOnly refresh cookie.
+ * Concurrent callers share the API client's single refresh request.
  */
 export async function refreshAccessToken(): Promise<RefreshResponse | null> {
-  try {
-    const data = await request<RefreshResponse>("/api/refresh", {
-      method: "POST",
-      skipAuth: true,
-    });
-
-    if (data.accessToken) {
-      saveTokens(data.accessToken);
-    }
-
-    return data;
-  } catch {
-    // Refresh token is invalid or expired — force re-login
-    clearTokens();
-    return null;
-  }
+  const accessToken = await refreshAccessTokenOnce();
+  return accessToken ? { success: true, accessToken } : null;
 }
 
 /**
