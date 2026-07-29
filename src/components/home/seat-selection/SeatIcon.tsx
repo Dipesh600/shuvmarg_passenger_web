@@ -13,7 +13,7 @@ interface SeatIconProps {
 export function SeatIcon({ state, label, price, className, onClick }: SeatIconProps) {
   const svgColors = {
     available: { stroke: "#cbd5e1", fill: "white", text: "#475569" },
-    selected: { stroke: "#5C1414", fill: "#7A1D1B", text: "white" },
+    selected: { stroke: "#C93522", fill: "#D94328", text: "white" },
     occupied: { stroke: "#9ca3af", fill: "#e5e7eb", text: "#6b7280" },
   };
 
@@ -29,7 +29,7 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
         className
       ].filter(Boolean).join(" ")}
     >
-      <div className="relative w-[32px] h-9">
+      <div className="relative w-[40px] h-[45px]">
         <svg
           viewBox="0 0 32 40"
           fill="none"
@@ -74,7 +74,7 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
         {/* Seat Number Label */}
         {label && (
           <div
-            className="absolute inset-0 flex items-center justify-center pt-[2px] text-[9px] font-bold transition-colors pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center pt-[3px] text-[11px] font-bold transition-colors pointer-events-none"
             style={{ color: currentColors.text }}
           >
             {label}
@@ -83,9 +83,9 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
       </div>
 
       {/* Price tag below seat */}
-      <div className="h-3 flex items-center justify-center mt-0.5">
+      <div className="h-4 flex items-center justify-center mt-1">
         {price ? (
-          <span className="text-[8px] font-medium text-neutral-500 group-hover:text-[#7A1D1B] transition-colors">Rs. {price}</span>
+          <span className="text-[10px] font-semibold text-neutral-500 group-hover:text-[#D94328] transition-colors">Rs. {price}</span>
         ) : null}
       </div>
     </div>
