@@ -482,6 +482,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               handleToggleSeat={handleToggleSeat}
               boardingPoints={boardingPoints}
               droppingPoints={droppingPoints}
+              onRetry={refetch}
             />
           )}
           {activeTab === 'points' && (
