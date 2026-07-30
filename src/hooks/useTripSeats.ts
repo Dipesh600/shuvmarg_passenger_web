@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { SeatConfig } from "@/components/home/seat-selection/PassengerSeatMap";
 import { request } from "@/lib/api";
 
@@ -44,18 +44,45 @@ export function useTripSeats(tripId: string) {
   const [data, setData] = useState<TripSeatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
 
   const loadSeats = useCallback(async () => {
     if (!tripId) return;
 
+    activeRequestRef.current?.abort();
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await request<GetSeatsResponse>("/api/ticket/getSeats", {
-        method: "POST",
+      const requestOptions = {
+        method: "POST" as const,
         body: { tripId },
-      });
+        signal: controller.signal,
+      };
+      let response: GetSeatsResponse;
+
+      try {
+        response = await request<GetSeatsResponse>(
+          "/api/ticket/getSeats",
+          requestOptions
+        );
+      } catch (err: unknown) {
+        const statusCode =
+          typeof err === "object" && err !== null && "statusCode" in err
+            ? (err as { statusCode: number }).statusCode
+            : null;
+
+        if (statusCode !== 401 && statusCode !== 403) throw err;
+
+        // Identity is optional for public seat availability. If a saved token
+        // is stale, retry anonymously instead of blocking the seat map.
+        response = await request<GetSeatsResponse>("/api/ticket/getSeats", {
+          ...requestOptions,
+          skipAuth: true,
+        });
+      }
 
       const seatConfig = response.data?.seatConfig ?? null;
       const bookedSeatIds = extractBookedSeatIds(response.data ?? {});
@@ -68,31 +95,25 @@ export function useTripSeats(tripId: string) {
         setData({ seatConfig, bookedSeatIds });
       }
     } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
       const message =
         err instanceof Error ? err.message : "Unable to load seats.";
-      // Seat availability is public. Authentication errors only occur when a
-      // stale or invalid saved token was supplied with the optional session.
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "statusCode" in err &&
-        ((err as { statusCode: number }).statusCode === 401 ||
-          (err as { statusCode: number }).statusCode === 403)
-      ) {
-        setError(
-          "Your saved session is no longer valid. Sign in again to refresh seat availability."
-        );
-      } else {
-        setError(message);
-      }
+      setError(message);
       setData(null);
     } finally {
-      setIsLoading(false);
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setIsLoading(false);
+      }
     }
   }, [tripId]);
 
   useEffect(() => {
-    loadSeats();
+    void loadSeats();
+    return () => {
+      activeRequestRef.current?.abort();
+      activeRequestRef.current = null;
+    };
   }, [loadSeats]);
 
   return {

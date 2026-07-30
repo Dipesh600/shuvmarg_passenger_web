@@ -16,8 +16,8 @@
  * Design:
  *   - We decode the JWT locally (no extra API call) to get user info.
  *   - We do NOT verify the JWT signature client-side (that's the server's job).
- *   - On mount, we read the stored access token; if it exists and hasn't expired
- *     by our local clock, we trust it. If it looks expired, we try to refresh.
+ *   - On mount, a missing or expired in-memory access token is restored through
+ *     the HttpOnly refresh cookie.
  *   - Token expiry is checked via `exp` claim (standard JWT field).
  */
 
@@ -37,6 +37,7 @@ import {
   clearTokens,
   verifyPassengerAuthOTP,
 } from "@/lib/auth";
+import { clearLegacyPersistentAccessToken } from "@/lib/access-token-store";
 
 // ── Payload type (mirrors what backend puts in the JWT) ───────────────────────
 
@@ -45,6 +46,7 @@ export interface AuthUser {
   name?: string;
   email?: string;
   phone?: string;
+  gender?: string;
   role: string;
   activeRole: string;
   roles: string[];
@@ -105,29 +107,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── Silent session restoration on mount ────────────────────────────────────
   useEffect(() => {
     async function restoreSession() {
+      clearLegacyPersistentAccessToken();
       const token = getAccessToken();
 
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      const decoded = decodeJwtPayload(token);
-
-      if (!decoded) {
+      if (token) {
+        const decoded = decodeJwtPayload(token);
+        if (decoded && !isTokenExpired(decoded)) {
+          setUser(decoded);
+          setIsLoading(false);
+          return;
+        }
         clearTokens();
-        setIsLoading(false);
-        return;
       }
 
-      if (!isTokenExpired(decoded)) {
-        // Token is still valid — use it immediately
-        setUser(decoded);
-        setIsLoading(false);
-        return;
-      }
-
-      // Token expired — try to refresh silently
+      // Restore from the HttpOnly refresh cookie. This also supports a full
+      // page reload now that access tokens are intentionally memory-only.
       const refreshed = await refreshAccessToken();
       if (refreshed?.accessToken) {
         const freshDecoded = decodeJwtPayload(refreshed.accessToken);

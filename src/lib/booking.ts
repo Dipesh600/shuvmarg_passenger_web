@@ -1,4 +1,4 @@
-import { request } from "@/lib/api";
+import { ApiRequestError, request } from "@/lib/api";
 
 export interface PreparedBooking {
   tempBookingId: string;
@@ -38,10 +38,19 @@ export async function preparePassengerBooking(
 export async function releasePassengerBookingHold(
   tempBookingId: string
 ): Promise<void> {
-  await request("/api/ticket/releaseBookingHold", {
-    method: "POST",
-    body: { tempBookingId },
-  });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await request("/api/ticket/releaseBookingHold", {
+        method: "POST",
+        body: { tempBookingId },
+      });
+      return;
+    } catch (error) {
+      const retryable =
+        !(error instanceof ApiRequestError) || error.statusCode >= 500;
+      if (!retryable || attempt === 1) throw error;
+    }
+  }
 }
 
 export interface EsewaCheckoutInput {
