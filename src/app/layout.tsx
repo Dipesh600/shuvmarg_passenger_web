@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 export const metadata: Metadata = {
   title: "Shuv Marg - Nepal's Trusted Travel Network",
@@ -23,7 +24,9 @@ export default function RootLayout({
           className="fixed inset-0 opacity-[0.05] pointer-events-none mix-blend-multiply -z-50" 
           style={{ backgroundImage: "url('/images/image.png')" }} 
         />
-        <AuthProvider>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

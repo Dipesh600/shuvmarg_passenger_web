@@ -335,7 +335,10 @@ export default function RouteSearchResults({
       {selectedTrip && (
         <SeatSelectionDrawer
           isOpen={isSeatDrawerOpen}
-          onClose={() => setIsSeatDrawerOpen(false)}
+          onClose={() => {
+            setIsSeatDrawerOpen(false);
+            setSelectedTrip(null);
+          }}
           trip={selectedTrip}
         />
       )}
