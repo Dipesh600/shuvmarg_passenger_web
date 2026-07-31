@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test:booking-lifecycle": "node --test tests/booking-hold-guard.test.mjs",
     "test:passenger-security": "node --test tests/passenger-session-security.test.mjs",
-    "test:offer-expiry": "node --experimental-strip-types --test tests/offer-expiry.test.mjs"
+    "test:offer-expiry": "node --experimental-strip-types --test tests/offer-expiry.test.mjs",
+    "test:city-picker": "node --experimental-strip-types --test tests/city-picker.test.mjs"
   },
   "dependencies": {
     "date-fns": "^4.4.0",

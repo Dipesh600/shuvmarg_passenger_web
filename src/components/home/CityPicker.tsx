@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api";
+import { formatStopSecondaryLabel } from "./cityPickerHelpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -10,13 +11,48 @@ interface Stop {
   id: string;
   name: string;
   code: string;
-  type: "CITY" | "TOWN" | "JUNCTION" | string;
-  state: string | null;
+  type: string;
+  province: string | null;
+  municipality: string | null;
+  district: string | null;
+  parentStop: { id: string; name: string } | null;
 }
 
 interface StopsResponse {
   success: boolean;
   data: Stop[];
+}
+
+interface StopGroup {
+  parentName: string;
+  parentId: string;
+  parentStop?: Stop;
+  children: Stop[];
+}
+
+function groupStops(stops: Stop[]): StopGroup[] {
+  const groups: Record<string, StopGroup> = {};
+
+  stops.forEach((stop) => {
+    const parentId = stop.parentStop?.id || stop.id;
+    const parentName = stop.parentStop?.name || stop.name;
+
+    if (!groups[parentId]) {
+      groups[parentId] = {
+        parentName,
+        parentId,
+        children: [],
+      };
+    }
+
+    if (!stop.parentStop) {
+      groups[parentId].parentStop = stop;
+    } else {
+      groups[parentId].children.push(stop);
+    }
+  });
+
+  return Object.values(groups);
 }
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
@@ -108,22 +144,24 @@ function StopRow({
   stop,
   isSelected,
   onSelect,
+  isChild = false,
 }: {
   stop: Stop;
   isSelected: boolean;
   onSelect: (stop: Stop) => void;
+  isChild?: boolean;
 }) {
   return (
-    <li>
-      <button
-        onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
-        onClick={() => onSelect(stop)}
-        className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
-          isSelected
-            ? "bg-[#D94328]/[0.08] text-[#D94328]"
-            : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
-        }`}
-      >
+    <button
+      onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
+      onClick={() => onSelect(stop)}
+      className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
+        isSelected
+          ? "bg-[#D94328]/[0.08] text-[#D94328]"
+          : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
+      } ${isChild ? "pl-8" : ""}`}
+    >
+      <div className="flex flex-col">
         <span
           className={`text-[15px] font-semibold transition-colors ${
             isSelected
@@ -133,16 +171,56 @@ function StopRow({
         >
           {stop.name}
         </span>
-        <span
-          className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${
-            isSelected
-              ? "text-[#D94328]/60"
-              : "text-neutral-400 group-hover/item:text-[#D94328]/60"
-          }`}
-        >
-          {stop.code}
+        <span className="text-[11px] text-neutral-400 mt-0.5">
+          {formatStopSecondaryLabel(stop)}
         </span>
-      </button>
+      </div>
+      <span
+        className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${
+          isSelected
+            ? "text-[#D94328]/60"
+            : "text-neutral-400 group-hover/item:text-[#D94328]/60"
+        }`}
+      >
+        {stop.code}
+      </span>
+    </button>
+  );
+}
+
+function StopGroupRow({
+  group,
+  selectedValue,
+  onSelect,
+}: {
+  group: StopGroup;
+  selectedValue: string;
+  onSelect: (stop: Stop) => void;
+}) {
+  return (
+    <li className="flex flex-col">
+      {group.parentStop && (
+        <StopRow
+          stop={group.parentStop}
+          isSelected={group.parentStop.name === selectedValue}
+          onSelect={onSelect}
+          isChild={false}
+        />
+      )}
+      {!group.parentStop && (
+        <div className="px-4 pt-2 pb-1 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+          {group.parentName}
+        </div>
+      )}
+      {group.children.map((child) => (
+        <StopRow
+          key={child.id}
+          stop={child}
+          isSelected={child.name === selectedValue}
+          onSelect={onSelect}
+          isChild={!!group.parentStop}
+        />
+      ))}
     </li>
   );
 }
@@ -168,6 +246,7 @@ export function CityPicker({
   const [searchLoading, setSearchLoading] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const searchRequestIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -178,6 +257,14 @@ export function CityPicker({
       setPopularStops(stops);
       setPopularLoading(false);
     });
+  }, []);
+
+  // Cleanup pending search timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      searchRequestIdRef.current++;
+    };
   }, []);
 
   // ── Keep inputText in sync when value changes (e.g. swap button) ─────────
@@ -237,19 +324,24 @@ export function CityPicker({
       onChange(""); // Decommit any previous selection
       if (!isOpen) setIsOpen(true);
 
+      const currentRequestId = ++searchRequestIdRef.current;
+
       // Clear previous debounce
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
       if (val.trim().length < 2) {
         setSearchResults([]);
+        setSearchLoading(false);
         return;
       }
 
       setSearchLoading(true);
       debounceRef.current = setTimeout(async () => {
         const results = await searchStops(val.trim());
-        setSearchResults(results);
-        setSearchLoading(false);
+        if (currentRequestId === searchRequestIdRef.current) {
+          setSearchResults(results);
+          setSearchLoading(false);
+        }
       }, 250);
     },
     [isOpen, onChange]
@@ -286,6 +378,8 @@ export function CityPicker({
   const displayList = isFiltering
     ? searchResults.filter((s) => s.name !== excludeCity)
     : popularStops.filter((s) => s.name !== excludeCity);
+
+  const groupedList = groupStops(displayList);
 
   const showPopularLabel = !isFiltering && displayList.length > 0;
   const showNoResults = isFiltering && !searchLoading && displayList.length === 0;
@@ -378,11 +472,11 @@ export function CityPicker({
             {/* Stop list */}
             {!isLoadingDropdown && displayList.length > 0 && (
               <ul className="py-1.5 max-h-[280px] overflow-y-auto">
-                {displayList.map((stop) => (
-                  <StopRow
-                    key={stop.id}
-                    stop={stop}
-                    isSelected={stop.name === value}
+                {groupedList.map((group) => (
+                  <StopGroupRow
+                    key={group.parentId}
+                    group={group}
+                    selectedValue={value}
                     onSelect={handleSelect}
                   />
                 ))}
