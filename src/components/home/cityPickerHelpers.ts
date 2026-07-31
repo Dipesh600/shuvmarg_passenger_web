@@ -6,42 +6,15 @@ export interface StopLocationInput {
   parentStop?: { id?: string; name?: string } | null;
 }
 
-export function formatStopLocation(stop: StopLocationInput): string {
-  const parts: string[] = [];
-
-  if (stop.municipality && stop.municipality.trim()) {
-    parts.push(stop.municipality.trim());
-  }
-  if (stop.district && stop.district.trim()) {
-    const trimmed = stop.district.trim();
-    if (!parts.includes(trimmed)) {
-      parts.push(trimmed);
-    }
-  }
-  if (stop.province && stop.province.trim()) {
-    const trimmed = stop.province.trim();
-    if (!parts.includes(trimmed)) {
-      parts.push(trimmed);
-    }
-  }
-
-  const geoText = parts.length > 0 ? parts.join(", ") : "Nepal";
-
+/**
+ * Returns parent stop name if present, or null if top-level stop.
+ * Hides stop type and geographic context (municipality, district, province) completely.
+ */
+export function formatStopSecondaryLabel(stop: StopLocationInput): string | null {
   if (stop.parentStop?.name && stop.parentStop.name.trim()) {
-    const parentName = stop.parentStop.name.trim();
-    if (!parts.includes(parentName)) {
-      return `${geoText} · under ${parentName}`;
-    }
+    return stop.parentStop.name.trim();
   }
-
-  return geoText;
-}
-
-export function formatStopSecondaryLabel(stop: StopLocationInput): string {
-  const rawType = stop.type && stop.type.trim() ? stop.type.trim() : "Stop";
-  const typeLabel = rawType.charAt(0).toUpperCase() + rawType.slice(1).toLowerCase();
-  const location = formatStopLocation(stop);
-  return `${typeLabel} • ${location}`;
+  return null;
 }
 
 export function isValidSelectedStop(value: string, displayList: Array<{ name: string }>): boolean {
