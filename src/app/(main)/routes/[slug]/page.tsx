@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import RouteDetailHero from "@/components/routes/RouteDetailHero";
 import RouteSearchResults from "@/components/routes/RouteSearchResults";
+import RouteSearchSkeleton from "@/components/routes/RouteSearchSkeleton";
 import { notFound } from "next/navigation";
 
 interface RouteDetailPageProps {
@@ -27,40 +28,28 @@ export default async function RouteDetailPage({ params }: RouteDetailPageProps) 
 
   return (
     <main className="min-h-screen bg-[#EAD8BE]">
-      {/*
-        RouteSearchResults and RouteDetailHero call useSearchParams() internally.
-        Next.js requires Suspense boundary around any client component
-        that reads search params when the page is statically rendered.
-      */}
+      {/* Hero section renders immediately at top */}
+      <Suspense fallback={null}>
+        <RouteDetailHero origin={origin} destination={destination} />
+      </Suspense>
+
+      {/* Results column loads skeleton inside results container only */}
       <Suspense
         fallback={
-          <div className="w-full max-w-[1280px] mx-auto px-4 md:px-12 py-8">
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl border border-[#E8D2B0]/40 p-5 animate-pulse"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[#EAD8BE]" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-[#EAD8BE] rounded w-1/3 mb-1" />
-                      <div className="h-3 bg-[#EAD8BE] rounded w-1/5" />
-                    </div>
-                    <div className="h-6 bg-[#EAD8BE] rounded w-16" />
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 bg-[#EAD8BE] rounded w-20" />
-                    <div className="flex-1 h-[1px] bg-[#EAD8BE]" />
-                    <div className="h-8 bg-[#EAD8BE] rounded w-20" />
-                  </div>
+          <div className="w-full relative bg-[#EAD8BE] border-t border-[#D9B992]">
+            <div className="w-full max-w-[1280px] mx-auto px-4 md:px-12 py-8">
+              <div className="flex flex-col lg:flex-row gap-8">
+                <div className="hidden lg:block w-[320px] shrink-0">
+                  <div className="w-full h-80 bg-[#E8D2B0]/40 animate-pulse rounded-2xl" />
                 </div>
-              ))}
+                <div className="flex-1">
+                  <RouteSearchSkeleton count={3} />
+                </div>
+              </div>
             </div>
           </div>
         }
       >
-        <RouteDetailHero origin={origin} destination={destination} />
         <RouteSearchResults origin={origin} destination={destination} />
       </Suspense>
     </main>

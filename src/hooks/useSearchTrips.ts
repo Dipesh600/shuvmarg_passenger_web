@@ -59,9 +59,9 @@ export function useSearchTrips({ from, to, date }: UseSearchTripsOptions) {
         }
       );
 
-      // Enforce a minimum loading time of 800ms for smoother UX transitions
+      // Enforce a smooth 450ms loading window so the skeleton loader cards display clearly on date changes
       const elapsed = Date.now() - startTime;
-      const minDelay = 800;
+      const minDelay = 450;
       if (elapsed < minDelay) {
         await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed));
       }
