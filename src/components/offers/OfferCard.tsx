@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { Paperclip, Bus } from "lucide-react";
 import { CouponItem, EdgeConfig } from "@/types/coupon";
+import { isOfferExpired } from "./offerExpiry";
 
 const getEdgeConfig = (type: string, edge: "top" | "bottom" | "left" | "right") => {
   let gap = 0, mask = "", size = "", pos = "", repeat = "";
@@ -108,14 +109,11 @@ export default function OfferCard({
   onCopy,
   onSelect,
 }: OfferCardProps) {
-  const isExpired = React.useMemo(() => {
-    if (coupon.isCurrentlyValid === false) return true;
-    const expiry = coupon.validTo || coupon.expiryDate;
-    if (expiry) {
-      return new Date(expiry).getTime() < Date.now();
-    }
-    return false;
-  }, [coupon]);
+  const [currentTime] = useState(() => Date.now());
+
+  const isExpired = useMemo(() => {
+    return isOfferExpired(coupon, currentTime);
+  }, [coupon, currentTime]);
   const isOperator = coupon.category === "Operator Offer";
   const isExclusive = coupon.category === "Exclusive";
   const design = coupon.designConfig || {};

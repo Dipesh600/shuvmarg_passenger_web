@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, AlertCircle, RotateCw } from "lucide-react";
 import OfferCard from "./OfferCard";
 import { CouponItem } from "@/types/coupon";
+import { shouldDisplayOffer } from "./offerExpiry";
 
 interface OffersGridProps {
   coupons: CouponItem[];
@@ -29,6 +30,7 @@ export default function OffersGrid({
   onSelectCoupon,
 }: OffersGridProps) {
   const [showAll, setShowAll] = useState(false);
+  const [currentTime] = useState(() => Date.now());
 
   // Reset showAll when active tab changes for smooth predictable navigation
   useEffect(() => {
@@ -37,15 +39,9 @@ export default function OffersGrid({
 
   const filteredCoupons = useMemo(() => {
     // Cutoff rule: exclude coupons that expired more than 30 days ago
-    const validAndRecentlyExpired = coupons.filter((c) => {
-      const expiry = c.validTo || c.expiryDate;
-      if (!expiry) return true;
-      const expiryTime = new Date(expiry).getTime();
-      const now = Date.now();
-      if (expiryTime >= now) return true; // Active coupon
-      const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-      return now - expiryTime <= thirtyDaysInMs; // Expired within last 30 days
-    });
+    const validAndRecentlyExpired = coupons.filter((c) =>
+      shouldDisplayOffer(c, currentTime)
+    );
 
     if (activeTab === "All") {
       return validAndRecentlyExpired;
@@ -66,7 +62,7 @@ export default function OffersGrid({
       return validAndRecentlyExpired.filter((c) => c.category === "Wallet Offer");
     }
     return validAndRecentlyExpired;
-  }, [coupons, activeTab]);
+  }, [coupons, activeTab, currentTime]);
 
   const visibleCoupons = useMemo(() => {
     if (showAll || filteredCoupons.length <= INITIAL_LIMIT) {
