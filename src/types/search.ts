@@ -1,3 +1,18 @@
+export interface SelectedStop {
+  id: string;
+  name: string;
+  code?: string;
+  municipality?: string | null;
+  district?: string | null;
+  province?: string | null;
+  parentStopId?: string | null;
+  parentStop?: {
+    id: string;
+    name: string;
+    code?: string;
+  } | null;
+}
+
 export interface BoardingPoint {
   id?: string;
   name: string;

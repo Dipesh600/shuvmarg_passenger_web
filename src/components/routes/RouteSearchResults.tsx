@@ -39,11 +39,16 @@ export default function RouteSearchResults({
   const [isSeatDrawerOpen, setIsSeatDrawerOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<TripResult | null>(null);
 
+  const fromStopId = searchParams.get("fromStopId") || undefined;
+  const toStopId = searchParams.get("toStopId") || undefined;
+
   // Real API search
   const { trips, isLoading, error } = useSearchTrips({
     from: origin,
     to: destination,
     date: parsedDate,
+    fromStopId,
+    toStopId,
   });
 
   const filteredTrips = applyFilters(trips, filters);

@@ -38,7 +38,11 @@ export default function RecentSearches() {
             key={idx}
             onClick={() => {
               if (search.from && search.to) {
-                router.push(`/routes/${search.from.toLowerCase()}-to-${search.to.toLowerCase()}`);
+                let url = `/routes/${encodeURIComponent(search.from.toLowerCase())}-to-${encodeURIComponent(search.to.toLowerCase())}?from=${encodeURIComponent(search.from)}&to=${encodeURIComponent(search.to)}`;
+                if (search.fromStopId && search.toStopId) {
+                  url += `&fromStopId=${encodeURIComponent(search.fromStopId)}&toStopId=${encodeURIComponent(search.toStopId)}`;
+                }
+                router.push(url);
               }
             }}
             className="relative flex items-center transition-all shadow-[0_4px_12px_rgba(75,45,20,0.12)] overflow-hidden shrink-0 snap-start group hover:shadow-[0_6px_16px_rgba(217,67,40,0.15)] hover:-translate-y-0.5 h-[68px]"

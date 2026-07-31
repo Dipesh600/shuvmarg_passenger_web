@@ -72,6 +72,9 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
   const padY = lerp(16, 8, progress);      // py-4  → py-2
 
 
+  const fromStopIdParam = searchParams.get("fromStopId") || "";
+  const toStopIdParam = searchParams.get("toStopId") || "";
+
   return (
     <>
       {/* ── SCROLLS AWAY: background + headline ── */}
@@ -181,7 +184,14 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
               : "scale-100 shadow-sm border-[#D8BFA6]"
               }`}
           >
-            <SearchCard variant="compact" initialFrom={origin} initialTo={destination} initialDate={parsedDate} />
+            <SearchCard
+              variant="compact"
+              initialFrom={origin}
+              initialTo={destination}
+              initialDate={parsedDate}
+              initialFromStopId={fromStopIdParam}
+              initialToStopId={toStopIdParam}
+            />
           </div>
         </div>
       </div>

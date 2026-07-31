@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api";
 import { formatStopSecondaryLabel } from "./cityPickerHelpers";
 
+import { SelectedStop } from "@/types/search";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Stop {
@@ -16,6 +18,24 @@ interface Stop {
   municipality: string | null;
   district: string | null;
   parentStop: { id: string; name: string } | null;
+}
+
+export function toSelectedStop(stop: Stop): SelectedStop {
+  return {
+    id: stop.id,
+    name: stop.name,
+    code: stop.code || undefined,
+    municipality: stop.municipality || null,
+    district: stop.district || null,
+    province: stop.province || null,
+    parentStopId: stop.parentStop?.id || null,
+    parentStop: stop.parentStop
+      ? {
+          id: stop.parentStop.id,
+          name: stop.parentStop.name,
+        }
+      : null,
+  };
 }
 
 interface StopsResponse {
@@ -134,7 +154,7 @@ interface CityPickerProps {
   label: string;
   placeholder: string;
   value: string;            // The selected city name (or "")
-  onChange: (city: string) => void;
+  onChange: (city: string, stop?: SelectedStop) => void;
   excludeCity?: string;
   shortCodeOnMobile?: boolean;
   dropdownAlign?: "left" | "right";
@@ -363,7 +383,8 @@ export function CityPicker({
 
   const handleSelect = (stop: Stop) => {
     if (excludeCity && stop.name === excludeCity) return;
-    onChange(stop.name);
+    const selectedStop = toSelectedStop(stop);
+    onChange(stop.name, selectedStop);
     setInputText(stop.name);
     setIsOpen(false);
     setSearchResults([]);
