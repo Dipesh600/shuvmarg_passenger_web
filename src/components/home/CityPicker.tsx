@@ -151,6 +151,8 @@ function StopRow({
   onSelect: (stop: Stop) => void;
   isChild?: boolean;
 }) {
+  const parentLabel = formatStopSecondaryLabel(stop);
+
   return (
     <button
       onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
@@ -171,9 +173,11 @@ function StopRow({
         >
           {stop.name}
         </span>
-        <span className="text-[11px] text-neutral-400 mt-0.5">
-          {formatStopSecondaryLabel(stop)}
-        </span>
+        {parentLabel && (
+          <span className="text-[11px] text-neutral-400 mt-0.5">
+            {parentLabel}
+          </span>
+        )}
       </div>
       <span
         className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${
