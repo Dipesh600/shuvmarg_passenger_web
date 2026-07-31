@@ -6,6 +6,8 @@ export interface RecentSearch {
   from: string;
   to: string;
   date: string;
+  fromStopId?: string;
+  toStopId?: string;
   timestamp: number;
 }
 

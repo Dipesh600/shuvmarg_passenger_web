@@ -11,6 +11,8 @@ import DateQuickPills from "./search/DateQuickPills";
 import SwapCitiesButton from "./search/SwapCitiesButton";
 import SearchSubmitButton from "./search/SearchSubmitButton";
 
+import { SelectedStop } from "@/types/search";
+
 const CalendarIcon = ({ className = "w-[18px] h-[18px] shrink-0" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -34,6 +36,8 @@ interface SearchCardProps {
   initialFrom?: string;
   initialTo?: string;
   initialDate?: Date;
+  initialFromStopId?: string;
+  initialToStopId?: string;
 }
 
 export default function SearchCard({
@@ -41,9 +45,13 @@ export default function SearchCard({
   initialFrom = "",
   initialTo = "",
   initialDate,
+  initialFromStopId = "",
+  initialToStopId = "",
 }: SearchCardProps) {
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
+  const [fromStop, setFromStop] = useState<SelectedStop | null>(null);
+  const [toStop, setToStop] = useState<SelectedStop | null>(null);
   const [date, setDate] = useState<Date>(initialDate || new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -105,18 +113,34 @@ export default function SearchCard({
     return () => clearTimeout(timeoutId);
   }, []);
 
+  const handleFromChange = (cityName: string, stop?: SelectedStop) => {
+    setFrom(cityName);
+    setFromStop(stop || null);
+  };
+
+  const handleToChange = (cityName: string, stop?: SelectedStop) => {
+    setTo(cityName);
+    setToStop(stop || null);
+  };
+
   const handleExecuteSearch = (targetDate: Date, targetFrom = from, targetTo = to) => {
     if (targetFrom && targetTo && targetFrom !== targetTo) {
       const dateStr = format(targetDate, "yyyy-MM-dd");
-      router.push(
-        `/routes/${targetFrom.toLowerCase()}-to-${targetTo.toLowerCase()}?date=${dateStr}`,
-        { scroll: false }
-      );
+      const fromId = fromStop?.id || initialFromStopId || "";
+      const toId = toStop?.id || initialToStopId || "";
+
+      let searchUrl = `/routes/${encodeURIComponent(targetFrom.toLowerCase())}-to-${encodeURIComponent(targetTo.toLowerCase())}?date=${dateStr}&from=${encodeURIComponent(targetFrom)}&to=${encodeURIComponent(targetTo)}`;
+      if (fromId && toId) {
+        searchUrl += `&fromStopId=${encodeURIComponent(fromId)}&toStopId=${encodeURIComponent(toId)}`;
+      }
+
+      router.push(searchUrl, { scroll: false });
       setTimeout(() => {
         addSearch({
           from: targetFrom,
           to: targetTo,
           date: format(targetDate, "EEE dd MMM yyyy"),
+          ...(fromId && toId ? { fromStopId: fromId, toStopId: toId } : {}),
         });
       }, 1000);
     }
@@ -141,8 +165,12 @@ export default function SearchCard({
   const handleSwap = () => {
     const nextFrom = to;
     const nextTo = from;
+    const nextFromStop = toStop;
+    const nextToStop = fromStop;
     setFrom(nextFrom);
     setTo(nextTo);
+    setFromStop(nextFromStop);
+    setToStop(nextToStop);
   };
 
   let scrollerStartDate = new Date();
@@ -185,7 +213,7 @@ export default function SearchCard({
               label="From"
               placeholder={originPlaceholder || "Origin city"}
               value={from}
-              onChange={setFrom}
+              onChange={handleFromChange}
               excludeCity={to}
             />
           </div>
@@ -199,7 +227,7 @@ export default function SearchCard({
               label="To"
               placeholder="Destination city"
               value={to}
-              onChange={setTo}
+              onChange={handleToChange}
               excludeCity={from}
             />
           </div>
@@ -253,7 +281,7 @@ export default function SearchCard({
                 label="From"
                 placeholder={originPlaceholder || "Origin city"}
                 value={from}
-                onChange={setFrom}
+                onChange={handleFromChange}
                 excludeCity={to}
                 shortCodeOnMobile={true}
               />
@@ -266,7 +294,7 @@ export default function SearchCard({
                 label="To"
                 placeholder="Destination city"
                 value={to}
-                onChange={setTo}
+                onChange={handleToChange}
                 excludeCity={from}
                 shortCodeOnMobile={true}
                 dropdownAlign="right"
