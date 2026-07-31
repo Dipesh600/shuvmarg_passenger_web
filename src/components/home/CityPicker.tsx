@@ -43,38 +43,6 @@ interface StopsResponse {
   data: Stop[];
 }
 
-interface StopGroup {
-  parentName: string;
-  parentId: string;
-  parentStop?: Stop;
-  children: Stop[];
-}
-
-function groupStops(stops: Stop[]): StopGroup[] {
-  const groups: Record<string, StopGroup> = {};
-
-  stops.forEach((stop) => {
-    const parentId = stop.parentStop?.id || stop.id;
-    const parentName = stop.parentStop?.name || stop.name;
-
-    if (!groups[parentId]) {
-      groups[parentId] = {
-        parentName,
-        parentId,
-        children: [],
-      };
-    }
-
-    if (!stop.parentStop) {
-      groups[parentId].parentStop = stop;
-    } else {
-      groups[parentId].children.push(stop);
-    }
-  });
-
-  return Object.values(groups);
-}
-
 // ─── Cache ────────────────────────────────────────────────────────────────────
 // Popular stops are cached in localStorage for 24 h to avoid repeat network calls.
 // This matches the backend recommendation in stopSearchController.js.
@@ -209,43 +177,6 @@ function StopRow({
         {stop.code}
       </span>
     </button>
-  );
-}
-
-function StopGroupRow({
-  group,
-  selectedValue,
-  onSelect,
-}: {
-  group: StopGroup;
-  selectedValue: string;
-  onSelect: (stop: Stop) => void;
-}) {
-  return (
-    <li className="flex flex-col">
-      {group.parentStop && (
-        <StopRow
-          stop={group.parentStop}
-          isSelected={group.parentStop.name === selectedValue}
-          onSelect={onSelect}
-          isChild={false}
-        />
-      )}
-      {!group.parentStop && (
-        <div className="px-4 pt-2 pb-1 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-          {group.parentName}
-        </div>
-      )}
-      {group.children.map((child) => (
-        <StopRow
-          key={child.id}
-          stop={child}
-          isSelected={child.name === selectedValue}
-          onSelect={onSelect}
-          isChild={!!group.parentStop}
-        />
-      ))}
-    </li>
   );
 }
 
@@ -404,8 +335,6 @@ export function CityPicker({
     ? searchResults.filter((s) => s.name !== excludeCity)
     : popularStops.filter((s) => s.name !== excludeCity);
 
-  const groupedList = groupStops(displayList);
-
   const showPopularLabel = !isFiltering && displayList.length > 0;
   const showNoResults = isFiltering && !searchLoading && displayList.length === 0;
 
@@ -497,11 +426,11 @@ export function CityPicker({
             {/* Stop list */}
             {!isLoadingDropdown && displayList.length > 0 && (
               <ul className="py-1.5 max-h-[280px] overflow-y-auto">
-                {groupedList.map((group) => (
-                  <StopGroupRow
-                    key={group.parentId}
-                    group={group}
-                    selectedValue={value}
+                {displayList.map((stop) => (
+                  <StopRow
+                    key={stop.id}
+                    stop={stop}
+                    isSelected={stop.name === value}
                     onSelect={handleSelect}
                   />
                 ))}
