@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api";
+import { formatStopSecondaryLabel } from "./cityPickerHelpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -171,7 +172,7 @@ function StopRow({
           {stop.name}
         </span>
         <span className="text-[11px] text-neutral-400 mt-0.5">
-          {stop.type} • {stop.district || stop.province || stop.municipality || 'Nepal'}
+          {formatStopSecondaryLabel(stop)}
         </span>
       </div>
       <span
@@ -245,6 +246,7 @@ export function CityPicker({
   const [searchLoading, setSearchLoading] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const searchRequestIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -255,6 +257,14 @@ export function CityPicker({
       setPopularStops(stops);
       setPopularLoading(false);
     });
+  }, []);
+
+  // Cleanup pending search timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      searchRequestIdRef.current++;
+    };
   }, []);
 
   // ── Keep inputText in sync when value changes (e.g. swap button) ─────────
@@ -314,19 +324,24 @@ export function CityPicker({
       onChange(""); // Decommit any previous selection
       if (!isOpen) setIsOpen(true);
 
+      const currentRequestId = ++searchRequestIdRef.current;
+
       // Clear previous debounce
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
       if (val.trim().length < 2) {
         setSearchResults([]);
+        setSearchLoading(false);
         return;
       }
 
       setSearchLoading(true);
       debounceRef.current = setTimeout(async () => {
         const results = await searchStops(val.trim());
-        setSearchResults(results);
-        setSearchLoading(false);
+        if (currentRequestId === searchRequestIdRef.current) {
+          setSearchResults(results);
+          setSearchLoading(false);
+        }
       }, 250);
     },
     [isOpen, onChange]
