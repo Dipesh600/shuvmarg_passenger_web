@@ -15,6 +15,9 @@ interface BoardingPointsTabProps {
   setDroppingPoint: (val: string) => void;
   boardingPoints: Point[];
   droppingPoints: Point[];
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
 export function BoardingPointsTab({
@@ -24,7 +27,23 @@ export function BoardingPointsTab({
   setDroppingPoint,
   boardingPoints,
   droppingPoints,
+  isLoading,
+  error,
+  onRetry,
 }: BoardingPointsTabProps) {
+  if (isLoading) {
+    return <div className="m-auto text-sm font-semibold text-neutral-600">Loading boarding options…</div>;
+  }
+  if (error) {
+    return (
+      <div className="m-auto max-w-sm text-center">
+        <p className="text-sm font-semibold text-red-700">{error}</p>
+        <button className="mt-3 rounded-lg bg-[#D94328] px-4 py-2 text-sm font-bold text-white" onClick={onRetry}>
+          Try again
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="w-full flex h-full min-h-0 bg-transparent">
       <div className="w-full px-4 md:px-6 py-4 md:py-6 flex flex-col min-h-0">

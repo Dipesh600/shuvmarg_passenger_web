@@ -18,6 +18,17 @@ export interface BoardingPoint {
   name: string;
   time?: string;
   address?: string;
+  sourceType?: "BOARDING_LOCATION" | "STOP_FALLBACK";
+  sourceLayer?: "TRIP" | "SERVICE" | "OPERATOR" | "STOP";
+  usage?: "PICKUP" | "DROP";
+  stopId?: string;
+  boardingLocationId?: string | null;
+  assignmentId?: string | null;
+  canonicalName?: string;
+  stopName?: string;
+  landmark?: string | null;
+  reportingInstructions?: string | null;
+  coordinates?: { lat: number; lng: number };
 }
 
 export interface BusDetail {
@@ -59,6 +70,10 @@ export interface TripResult {
   availableSeats: number;
   busDetail: BusDetail;
   routeDetail: RouteDetail | null;
+  boardingContext?: {
+    originStopId: string;
+    destinationStopId: string;
+  } | null;
 }
 
 // ─── Filter State ──────────────────────────────────────────────────────────

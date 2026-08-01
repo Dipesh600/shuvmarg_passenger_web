@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
-import { TripResult } from "@/types/search";
+import { BoardingPoint, TripResult } from "@/types/search";
 import SeatMapTab from './seat-selection/SeatMapTab';
 import { BoardingPointsTab } from './seat-selection/BoardingPointsTab';
 import PassengerDetailsTab from './seat-selection/PassengerDetailsTab';
@@ -14,6 +14,7 @@ import { ApiRequestError } from "@/lib/api";
 import { initiateEsewaCheckout } from "@/lib/booking";
 import { submitEsewaCheckout } from "@/lib/esewa";
 import { useToast } from "@/context/ToastContext";
+import { getPassengerBoardingOptions } from "@/lib/boarding-options";
 
 interface SeatSelectionDrawerProps {
   isOpen: boolean;
@@ -38,6 +39,14 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const initialDroppingPoint = trip.busDetail.droppingPoints?.[0]?.name || "";
   const [boardingPoint, setBoardingPoint] = useState(initialBoardingPoint);
   const [droppingPoint, setDroppingPoint] = useState(initialDroppingPoint);
+  const [boardingPoints, setBoardingPoints] = useState<BoardingPoint[]>(
+    trip.busDetail.boardingPoints || []
+  );
+  const [droppingPoints, setDroppingPoints] = useState<BoardingPoint[]>(
+    trip.busDetail.droppingPoints || []
+  );
+  const [isLoadingPoints, setIsLoadingPoints] = useState(false);
+  const [pointsError, setPointsError] = useState<string | null>(null);
 
   const [expandedPassenger, setExpandedPassenger] = useState<number>(0);
   
@@ -127,8 +136,46 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     return `${m}:${s}`;
   };
 
-  const boardingPoints = trip.busDetail.boardingPoints || [];
-  const droppingPoints = trip.busDetail.droppingPoints || [];
+  const loadBoardingOptions = useCallback(async (signal?: AbortSignal) => {
+    const context = trip.boardingContext;
+    if (!context) {
+      const legacyBoarding = trip.busDetail.boardingPoints || [];
+      const legacyDropping = trip.busDetail.droppingPoints || [];
+      setBoardingPoints(legacyBoarding);
+      setDroppingPoints(legacyDropping);
+      setBoardingPoint(legacyBoarding[0]?.name || "");
+      setDroppingPoint(legacyDropping[0]?.name || "");
+      setPointsError(null);
+      return;
+    }
+    setIsLoadingPoints(true);
+    setPointsError(null);
+    setBoardingPoints([]);
+    setDroppingPoints([]);
+    try {
+      const options = await getPassengerBoardingOptions(
+        trip._id,
+        context.originStopId,
+        context.destinationStopId,
+        signal
+      );
+      setBoardingPoints(options.pickupOptions);
+      setDroppingPoints(options.dropOptions);
+      setBoardingPoint(options.pickupOptions[0]?.name || "");
+      setDroppingPoint(options.dropOptions[0]?.name || "");
+    } catch (requestError) {
+      if (requestError instanceof Error && requestError.name === "AbortError") return;
+      setBoardingPoint("");
+      setDroppingPoint("");
+      setPointsError(
+        requestError instanceof ApiRequestError
+          ? requestError.message
+          : "Boarding and dropping options could not be loaded."
+      );
+    } finally {
+      setIsLoadingPoints(false);
+    }
+  }, [trip]);
 
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
@@ -139,17 +186,25 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
 
   useEffect(() => {
     if (isOpen) {
+      const controller = new AbortController();
+      const loadTimer = setTimeout(() => {
+        void loadBoardingOptions(controller.signal);
+      }, 0);
       setIsRendered(true);
       // small delay to allow DOM to render before adding transition class
       const timer = setTimeout(() => setIsVisible(true), 10);
-      return () => clearTimeout(timer);
+      return () => {
+        controller.abort();
+        clearTimeout(loadTimer);
+        clearTimeout(timer);
+      };
     } else {
       abandonBookingSession();
       setIsVisible(false);
       const timer = setTimeout(() => setIsRendered(false), 500);
       return () => clearTimeout(timer);
     }
-  }, [abandonBookingSession, isOpen]);
+  }, [abandonBookingSession, isOpen, loadBoardingOptions]);
 
   const handleClose = useCallback(() => {
     if (closeTimerRef.current) return;
@@ -323,12 +378,12 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
           seatNo: seat.label,
         })),
         boardingPoint: {
-          name: boardingPoint,
-          time: selectedBoarding?.time,
+          ...selectedBoarding,
+          name: selectedBoarding?.name || boardingPoint,
         },
         droppingPoint: {
-          name: droppingPoint,
-          time: selectedDropping?.time,
+          ...selectedDropping,
+          name: selectedDropping?.name || droppingPoint,
         },
         bookedFrom: trip.routeDetail?.from,
         bookedTo: trip.routeDetail?.to,
@@ -493,6 +548,9 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               setDroppingPoint={setDroppingPoint}
               boardingPoints={boardingPoints}
               droppingPoints={droppingPoints}
+              isLoading={isLoadingPoints}
+              error={pointsError}
+              onRetry={() => void loadBoardingOptions()}
             />
           )}
           {activeTab === 'passenger' && (
