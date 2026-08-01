@@ -1,20 +1,15 @@
 import React from "react";
-
-interface Point {
-  id?: string;
-  name: string;
-  time?: string;
-  address?: string;
-  location?: string;
-}
+import { LocateFixed, MapPin, RotateCw } from "lucide-react";
+import { BoardingPoint } from "@/types/search";
+import { BoardingPointOptionList } from "./BoardingPointOptionList";
 
 interface BoardingPointsTabProps {
   boardingPoint: string;
   setBoardingPoint: (val: string) => void;
   droppingPoint: string;
   setDroppingPoint: (val: string) => void;
-  boardingPoints: Point[];
-  droppingPoints: Point[];
+  boardingPoints: BoardingPoint[];
+  droppingPoints: BoardingPoint[];
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -32,90 +27,89 @@ export function BoardingPointsTab({
   onRetry,
 }: BoardingPointsTabProps) {
   if (isLoading) {
-    return <div className="m-auto text-sm font-semibold text-neutral-600">Loading boarding options…</div>;
+    return (
+      <div className="m-auto flex flex-col items-center gap-3 text-sm font-semibold text-neutral-600">
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#D94328]/20 border-t-[#D94328]" />
+        Finding your pickup and drop options…
+      </div>
+    );
   }
   if (error) {
     return (
-      <div className="m-auto max-w-sm text-center">
-        <p className="text-sm font-semibold text-red-700">{error}</p>
-        <button className="mt-3 rounded-lg bg-[#D94328] px-4 py-2 text-sm font-bold text-white" onClick={onRetry}>
+      <div className="m-auto max-w-sm px-6 text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D94328]/10 text-[#D94328]">
+          <LocateFixed className="h-5 w-5" />
+        </div>
+        <h3 className="text-base font-bold text-[#17212B]">Locations unavailable</h3>
+        <p className="mt-1.5 text-sm font-medium leading-5 text-neutral-500">{error}</p>
+        <button
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#D94328] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#C93522]"
+          onClick={onRetry}
+        >
+          <RotateCw className="h-4 w-4" />
           Try again
         </button>
       </div>
     );
   }
-  return (
-    <div className="w-full flex h-full min-h-0 bg-transparent">
-      <div className="w-full px-4 md:px-6 py-4 md:py-6 flex flex-col min-h-0">
-        <div className="flex-1 overflow-y-auto md:pr-4 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start pb-24 md:pb-0">
-          {/* Boarding Points Card */}
-          <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#D8C5A8] overflow-hidden flex flex-col h-fit">
-            {/* Header */}
-            <div className="bg-[#F5F0E8] p-5 md:p-6 border-b border-[#D8C5A8] sticky top-0 z-10 flex flex-col">
-              <h3 className="text-[16px] md:text-[18px] font-bold text-neutral-900 mb-0.5">Boarding point</h3>
-              <p className="text-[13px] md:text-[14px] text-neutral-500 font-medium truncate">
-                {boardingPoint || "Select a point"}
-              </p>
-            </div>
-            {/* List */}
-            <div className="overflow-y-auto overscroll-contain">
-              {boardingPoints.map((bp, i) => (
-                <button
-                  key={i}
-                  onClick={() => setBoardingPoint(bp.name || bp.location || '')}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                    boardingPoint === (bp.name || bp.location)
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-neutral-200 hover:border-green-500 hover:bg-green-50/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      boardingPoint === (bp.name || bp.location)
-                        ? 'border-green-500 bg-green-500'
-                        : 'border-neutral-300'
-                    }`}></div>
-                    <span className="text-[14px] font-bold text-neutral-900">{bp.name || bp.location}</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-neutral-600">{bp.time || '--:--'}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Dropping Points Card */}
-          <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#D8C5A8] overflow-hidden flex flex-col h-fit">
-            {/* Header */}
-            <div className="bg-[#F5F0E8] p-5 md:p-6 border-b border-[#D8C5A8] sticky top-0 z-10 flex flex-col">
-              <h3 className="text-[16px] md:text-[18px] font-bold text-neutral-900 mb-0.5">Dropping point</h3>
-              <p className="text-[13px] md:text-[14px] text-neutral-500 font-medium truncate">
-                {droppingPoint || "Select a point"}
-              </p>
-            </div>
-            {/* List */}
-            <div className="overflow-y-auto overscroll-contain">
-              {droppingPoints.map((dp, i) => (
-                <button
-                  key={i}
-                  onClick={() => setDroppingPoint(dp.name || dp.location || '')}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                    droppingPoint === (dp.name || dp.location)
-                      ? 'border-red-500 bg-red-50'
-                      : 'border-neutral-200 hover:border-red-500 hover:bg-red-50/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      droppingPoint === (dp.name || dp.location)
-                        ? 'border-red-500 bg-red-500'
-                        : 'border-neutral-300'
-                    }`}></div>
-                    <span className="text-[14px] font-bold text-neutral-900">{dp.name || dp.location}</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-neutral-600">{dp.time || '--:--'}</span>
-                </button>
-              ))}
-            </div>
+  return (
+    <div className="flex h-full min-h-0 w-full bg-transparent">
+      <div className="mx-auto flex w-full max-w-6xl min-h-0 flex-col px-4 py-4 md:px-8 md:py-6">
+        <div className="mb-4 flex-shrink-0 md:mb-5">
+          <h3 className="text-lg font-bold tracking-tight text-[#17212B] md:text-xl">Choose pickup & drop locations</h3>
+          <p className="mt-0.5 text-[12px] font-medium text-neutral-500 md:text-[13px]">
+            Times and instructions are shown for each available stop.
+          </p>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto pb-24 pr-1 md:pb-2">
+          <div className="grid items-start gap-4 md:grid-cols-2 md:gap-5">
+            <section aria-labelledby="pickup-heading" className="overflow-hidden rounded-[22px] bg-white/70 shadow-[0_10px_36px_rgba(42,28,18,0.07)]">
+              <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#E8E0D4] bg-[#FAF7F2]/95 px-4 py-4 backdrop-blur-md md:px-5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#D94328] text-white shadow-sm">
+                  <LocateFixed className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h4 id="pickup-heading" className="text-[15px] font-bold text-[#17212B]">Pickup points</h4>
+                  <p className="truncate text-[12px] font-medium text-neutral-500">
+                    {boardingPoint || "Select your pickup point"}
+                  </p>
+                </div>
+              </div>
+              <div className="max-h-[46vh] overflow-y-auto overscroll-contain">
+                <BoardingPointOptionList
+                  points={boardingPoints}
+                  selectedPoint={boardingPoint}
+                  onSelect={setBoardingPoint}
+                  emptyMessage="No pickup location is available for this trip."
+                  accentLabel="pickup point"
+                />
+              </div>
+            </section>
+
+            <section aria-labelledby="drop-heading" className="overflow-hidden rounded-[22px] bg-white/70 shadow-[0_10px_36px_rgba(42,28,18,0.07)]">
+              <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#E8E0D4] bg-[#FAF7F2]/95 px-4 py-4 backdrop-blur-md md:px-5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#D94328] text-white shadow-sm">
+                  <MapPin className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h4 id="drop-heading" className="text-[15px] font-bold text-[#17212B]">Drop points</h4>
+                  <p className="truncate text-[12px] font-medium text-neutral-500">
+                    {droppingPoint || "Select your drop point"}
+                  </p>
+                </div>
+              </div>
+              <div className="max-h-[46vh] overflow-y-auto overscroll-contain">
+                <BoardingPointOptionList
+                  points={droppingPoints}
+                  selectedPoint={droppingPoint}
+                  onSelect={setDroppingPoint}
+                  emptyMessage="No drop location is available for this trip."
+                  accentLabel="drop point"
+                />
+              </div>
+            </section>
           </div>
         </div>
       </div>

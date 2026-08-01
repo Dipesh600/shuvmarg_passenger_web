@@ -16,6 +16,7 @@ export interface SelectedStop {
 export interface BoardingPoint {
   id?: string;
   name: string;
+  location?: string;
   time?: string;
   address?: string;
   sourceType?: "BOARDING_LOCATION" | "STOP_FALLBACK";

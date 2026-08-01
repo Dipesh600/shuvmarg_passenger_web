@@ -426,7 +426,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       
       {/* Drawer */}
       <div 
-        className={`fixed bottom-0 left-0 w-full h-[100dvh] lg:h-[90vh] bg-[#EED9BD] shadow-2xl z-[101] flex flex-col rounded-none lg:rounded-t-3xl overflow-hidden md:border-x md:border-[#D94328]/30 border-t-[3px] border-t-[#D94328]/80 lg:border-t-[3px] transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform overscroll-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 left-0 w-full h-[100dvh] lg:h-[90vh] bg-[#EED9BD] shadow-[0_-18px_60px_rgba(28,20,14,0.18)] z-[101] flex flex-col rounded-none lg:rounded-t-[28px] overflow-hidden lg:ring-1 lg:ring-black/5 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] transform overscroll-none ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Extra div to cover bottom overscroll on iOS */}
         <div className="absolute top-[100%] left-0 w-full h-[50vh] bg-[#EED9BD]" />
@@ -475,7 +475,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
           <div className="flex gap-6 md:gap-8 overflow-x-auto px-4 md:px-6 scrollbar-hide">
             {[
               { id: "seats", label: "Select seats" },
-              { id: "points", label: "Board/Drop point" },
+              { id: "points", label: "Pickup & drop" },
               { id: "passenger", label: "Passenger info" },
               ...(hold ? [{ id: "checkout", label: "Payment" }] : []),
             ].map(tab => (

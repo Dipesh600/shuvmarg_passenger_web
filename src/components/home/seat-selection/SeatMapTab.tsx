@@ -7,6 +7,7 @@ import SeatMapSkeleton from "./SeatMapSkeleton";
 import { BusDetailsScrollspy } from "./BusDetailsScrollspy";
 import { sanitizeErrorMessage } from "@/utils/errorSanitizer";
 import { AlertCircle, RotateCw } from "lucide-react";
+import { BoardingPoint } from "@/types/search";
 
 interface SeatMapTabProps {
   trip: any;
@@ -16,8 +17,8 @@ interface SeatMapTabProps {
   selectedSeats: any[];
   bookedSeatIds: string[];
   handleToggleSeat: (seatId: string, label: string, price: number) => void;
-  boardingPoints: { name?: string; location?: string; time?: string }[];
-  droppingPoints: { name?: string; location?: string; time?: string }[];
+  boardingPoints: BoardingPoint[];
+  droppingPoints: BoardingPoint[];
   onRetry?: () => void;
 }
 
