@@ -15,6 +15,17 @@ interface CheckoutOtpGateProps {
 
 type Step = "phone" | "otp";
 
+function cleanNepalPhone(raw: string): string {
+  let cleaned = raw.replace(/\D/g, "");
+  if (cleaned.startsWith("977") && cleaned.length > 10) {
+    cleaned = cleaned.slice(3);
+  }
+  if (cleaned.startsWith("0") && cleaned.length === 11) {
+    cleaned = cleaned.slice(1);
+  }
+  return cleaned.slice(0, 10);
+}
+
 export default function CheckoutOtpGate({
   phone,
   onPhoneChange,
@@ -28,7 +39,7 @@ export default function CheckoutOtpGate({
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const normalizedPhone = phone.replace(/\D/g, "").slice(0, 10);
+  const normalizedPhone = cleanNepalPhone(phone);
   const validPhone = /^(97|98)\d{8}$/.test(normalizedPhone);
 
   const sendOtp = async () => {
@@ -127,7 +138,7 @@ export default function CheckoutOtpGate({
                 inputMode="numeric"
                 autoComplete="tel"
                 value={normalizedPhone}
-                onChange={(event) => onPhoneChange(event.target.value.replace(/\D/g, "").slice(0, 10))}
+                onChange={(event) => onPhoneChange(cleanNepalPhone(event.target.value))}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") void sendOtp();
                 }}

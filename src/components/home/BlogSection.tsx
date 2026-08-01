@@ -7,25 +7,25 @@ import { CheckCircle2 } from "lucide-react";
 export default function BlogSection() {
   return (
     <section className="relative w-full py-16 md:py-24 bg-white z-10 border-t border-gray-100">
-      
+
       {/* Subtle background texture */}
-      <div 
-        className="absolute inset-0 opacity-[0.03] mix-blend-multiply pointer-events-none" 
-        style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} 
+      <div
+        className="absolute inset-0 opacity-[0.03] mix-blend-multiply pointer-events-none"
+        style={{ backgroundImage: 'url(/images/image.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
       />
 
       <div className="relative max-w-6xl mx-auto px-4 md:px-8 space-y-24">
-        
+
         {/* Block 1: Image Left, Text Right */}
         <div className="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-16 py-6 lg:py-0">
           <div className="absolute inset-0 lg:relative lg:inset-auto flex w-full lg:w-1/2 justify-center items-center opacity-10 lg:opacity-100 pointer-events-none lg:pointer-events-auto z-0 lg:z-10">
             <div className="hidden lg:block absolute inset-0 bg-[#ff7828]/5 rounded-full blur-3xl" />
-            <Image 
-              src="/images/offers/ticket.webp" 
-              alt="Book Bus Tickets Online" 
-              width={400} 
-              height={400} 
-              className="relative z-10 w-full max-w-[400px] h-full lg:h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500" 
+            <Image
+              src="/images/offers/ticket.webp"
+              alt="Book Bus Tickets Online"
+              width={400}
+              height={400}
+              className="relative z-10 w-full max-w-[400px] h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500"
             />
           </div>
           <div className="w-full lg:w-1/2 relative z-10">
@@ -56,12 +56,12 @@ export default function BlogSection() {
         <div className="relative flex flex-col lg:flex-row-reverse items-center gap-10 lg:gap-16 py-6 lg:py-0">
           <div className="absolute inset-0 lg:relative lg:inset-auto flex w-full lg:w-1/2 justify-center items-center opacity-10 lg:opacity-100 pointer-events-none lg:pointer-events-auto z-0 lg:z-10">
             <div className="hidden lg:block absolute inset-0 bg-[#015db8]/5 rounded-full blur-3xl" />
-            <Image 
-              src="/images/offers/wallet.webp" 
-              alt="Benefits of Booking Online" 
-              width={400} 
-              height={400} 
-              className="relative z-10 w-full max-w-[400px] h-full lg:h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500" 
+            <Image
+              src="/images/offers/wallet.webp"
+              alt="Benefits of Booking Online"
+              width={400}
+              height={400}
+              className="relative z-10 w-full max-w-[400px] h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500"
             />
           </div>
           <div className="w-full lg:w-1/2 relative z-10">
@@ -93,12 +93,12 @@ export default function BlogSection() {
         <div className="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-16 py-6 lg:py-0">
           <div className="absolute inset-0 lg:relative lg:inset-auto flex w-full lg:w-1/2 justify-center items-center opacity-10 lg:opacity-100 pointer-events-none lg:pointer-events-auto z-0 lg:z-10">
             <div className="hidden lg:block absolute inset-0 bg-[#ff7828]/5 rounded-full blur-3xl" />
-            <Image 
-              src="/images/offers/bus.webp" 
-              alt="Online Bus Booking Services" 
-              width={400} 
-              height={400} 
-              className="relative z-10 w-full max-w-[400px] h-full lg:h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500" 
+            <Image
+              src="/images/offers/bus.webp"
+              alt="Online Bus Booking Services"
+              width={400}
+              height={400}
+              className="relative z-10 w-full max-w-[400px] h-auto object-contain translate-y-[10%] lg:translate-y-0 lg:drop-shadow-lg lg:hover:-translate-y-2 transition-transform duration-500"
             />
           </div>
           <div className="w-full lg:w-1/2 relative z-10">

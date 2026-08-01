@@ -2,11 +2,13 @@
 
 import React, { useRef, useState, useCallback } from "react";
 import { BusPhotosGallery } from "./BusPhotosGallery";
+import { BoardingPointsOverview } from "./BoardingPointsOverview";
+import { BoardingPoint } from "@/types/search";
 
 interface BusDetailsScrollspyProps {
   trip: any;
-  boardingPoints: { name?: string; location?: string; time?: string }[];
-  droppingPoints: { name?: string; location?: string; time?: string }[];
+  boardingPoints: BoardingPoint[];
+  droppingPoints: BoardingPoint[];
   isMobileDetailsExpanded: boolean;
   setIsMobileDetailsExpanded: (val: boolean) => void;
   dragOffset: number;
@@ -142,35 +144,41 @@ export function BusDetailsScrollspy({
           {/* Amenities */}
           <section ref={(el) => { sectionRefs.current["amenities"] = el; }}>
             <h3 className="text-[18px] font-bold text-neutral-900 mb-4">Amenities</h3>
-            {trip?.busDetail?.amenities?.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                {trip.busDetail.amenities.map((item: string, i: number) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 bg-[#F5F0E8] p-3 rounded-xl border-2 border-[#D94328]/40"
-                  >
-                    <svg
-                      className="w-4 h-4 text-[#D94328] shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+            {(() => {
+              const items = (trip?.busDetail?.amenities || [])
+                .map((a: any) => typeof a === "string" ? a : (a?.name || ""))
+                .filter(Boolean);
+              if (items.length === 0) {
+                return <p className="text-[13px] text-neutral-500">No amenities listed.</p>;
+              }
+              return (
+                <div className="grid grid-cols-2 gap-3">
+                  {items.map((item: string, i: number) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 bg-[#F5F0E8] p-3 rounded-xl border-2 border-[#D94328]/40"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.5}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span className="text-[13px] font-medium text-[#5D4B3B] capitalize">
-                      {item}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[13px] text-neutral-500">No amenities listed.</p>
-            )}
+                      <svg
+                        className="w-4 h-4 text-[#D94328] shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2.5}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span className="text-[13px] font-medium text-[#5D4B3B] capitalize">
+                        {item}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </section>
 
           {/* Cancellation Policy */}
@@ -210,48 +218,11 @@ export function BusDetailsScrollspy({
 
           {/* Boarding & Dropping */}
           <section ref={(el) => { sectionRefs.current["points"] = el; }}>
-            <h3 className="text-[18px] font-bold text-neutral-900 mb-4">
-              Boarding & Dropping Points
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-[13px] font-bold text-[#D94328] uppercase tracking-wider mb-2">
-                  Boarding Locations
-                </h4>
-                <div className="space-y-2">
-                  {boardingPoints.map((bp, i) => (
-                    <div key={i} className="bg-white/80 p-3 rounded-xl border border-[#D8C5A8]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[14px] font-bold text-neutral-900">{bp.name}</span>
-                        <span className="text-[12px] text-[#D94328] font-bold">{bp.time}</span>
-                      </div>
-                      {bp.location && (
-                        <p className="text-[12px] text-neutral-500 mt-0.5">{bp.location}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-[13px] font-bold text-[#D94328] uppercase tracking-wider mb-2">
-                  Dropping Locations
-                </h4>
-                <div className="space-y-2">
-                  {droppingPoints.map((dp, i) => (
-                    <div key={i} className="bg-white/80 p-3 rounded-xl border border-[#D8C5A8]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[14px] font-bold text-neutral-900">{dp.name}</span>
-                        <span className="text-[12px] text-[#D94328] font-bold">{dp.time}</span>
-                      </div>
-                      {dp.location && (
-                        <p className="text-[12px] text-neutral-500 mt-0.5">{dp.location}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <h3 className="mb-1 text-[18px] font-bold text-neutral-900">Pickup & drop overview</h3>
+            <p className="mb-4 text-[12px] font-medium text-neutral-500">
+              Available locations and scheduled times for this bus.
+            </p>
+            <BoardingPointsOverview boardingPoints={boardingPoints} droppingPoints={droppingPoints} />
           </section>
 
           {/* Operator Policies */}
