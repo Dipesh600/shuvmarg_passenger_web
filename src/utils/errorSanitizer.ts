@@ -16,6 +16,24 @@ export function sanitizeErrorMessage(rawError: unknown): string {
   const lower = message.toLowerCase();
 
   if (
+    lower.includes("booking_hold_invalid") ||
+    lower.includes("booking_hold_mismatch") ||
+    lower.includes("hold expired") ||
+    lower.includes("hold_expired") ||
+    lower.includes("reservation expired")
+  ) {
+    return "Your seat reservation time ended. Please select your seats again.";
+  }
+
+  if (
+    lower.includes("seat_temporarily_held") ||
+    lower.includes("temporarily held") ||
+    lower.includes("currently held")
+  ) {
+    return "These seats are currently selected by another passenger. Please pick another seat.";
+  }
+
+  if (
     lower.includes("failed to fetch") ||
     lower.includes("networkerror") ||
     lower.includes("network request failed") ||
@@ -46,7 +64,7 @@ export function sanitizeErrorMessage(rawError: unknown): string {
 
   // Return original clean string if already friendly, capped at reasonable length
   if (message.length > 120) {
-    return "Unable to load seat availability at this time. Please try again.";
+    return "Unable to reserve your seats at this time. Please try again.";
   }
 
   return message;

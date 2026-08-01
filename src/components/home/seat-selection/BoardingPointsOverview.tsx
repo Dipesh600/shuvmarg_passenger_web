@@ -1,5 +1,6 @@
 import { LocateFixed, MapPin } from "lucide-react";
 import { BoardingPoint } from "@/types/search";
+import { getBoardingPointDetail } from "./boardingPointDisplay";
 
 interface PointGroupProps {
   title: string;
@@ -29,7 +30,7 @@ function PointGroup({ title, points, type }: PointGroupProps) {
       ) : (
         <div className="divide-y divide-[#E8E0D4]">
           {points.map((point, index) => {
-            const detail = point.address || point.landmark || point.location || point.stopName;
+            const detail = getBoardingPointDetail(point);
             const key = point.id || point.boardingLocationId || `${point.name}-${index}`;
 
             return (

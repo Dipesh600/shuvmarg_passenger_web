@@ -27,9 +27,24 @@ export interface BoardingPoint {
   assignmentId?: string | null;
   canonicalName?: string;
   stopName?: string;
+  parentStopId?: string | null;
+  municipality?: string | null;
+  district?: string | null;
+  province?: string | null;
+  isChildOfSelection?: boolean;
   landmark?: string | null;
   reportingInstructions?: string | null;
   coordinates?: { lat: number; lng: number };
+}
+
+export interface BoardingOptionGroup {
+  stopId: string;
+  stopName: string;
+  municipality?: string | null;
+  district?: string | null;
+  province?: string | null;
+  isChildOfSelection: boolean;
+  options: BoardingPoint[];
 }
 
 export interface BusDetail {
@@ -74,6 +89,8 @@ export interface TripResult {
   boardingContext?: {
     originStopId: string;
     destinationStopId: string;
+    originSelectionStopId?: string;
+    destinationSelectionStopId?: string;
   } | null;
 }
 

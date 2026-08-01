@@ -1,7 +1,8 @@
 import React from "react";
 import { LocateFixed, MapPin, RotateCw } from "lucide-react";
-import { BoardingPoint } from "@/types/search";
+import { BoardingOptionGroup, BoardingPoint } from "@/types/search";
 import { BoardingPointOptionList } from "./BoardingPointOptionList";
+import { BoardingPointGroupList } from "./BoardingPointGroupList";
 
 interface BoardingPointsTabProps {
   boardingPoint: string;
@@ -10,6 +11,10 @@ interface BoardingPointsTabProps {
   setDroppingPoint: (val: string) => void;
   boardingPoints: BoardingPoint[];
   droppingPoints: BoardingPoint[];
+  boardingGroups?: BoardingOptionGroup[];
+  droppingGroups?: BoardingOptionGroup[];
+  pickupIsParentSelection?: boolean;
+  dropIsParentSelection?: boolean;
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -22,10 +27,24 @@ export function BoardingPointsTab({
   setDroppingPoint,
   boardingPoints,
   droppingPoints,
+  boardingGroups = [],
+  droppingGroups = [],
+  pickupIsParentSelection,
+  dropIsParentSelection,
   isLoading,
   error,
   onRetry,
 }: BoardingPointsTabProps) {
+  const findSelectedOption = (points: BoardingPoint[], groups: BoardingOptionGroup[], value: string) =>
+    points.find((point) => point.name === value) ||
+    groups.flatMap((group) => group.options).find((point) => point.name === value);
+  const selectedPickup = findSelectedOption(boardingPoints, boardingGroups, boardingPoint);
+  const selectedDrop = findSelectedOption(droppingPoints, droppingGroups, droppingPoint);
+  const pickupStopName = selectedPickup?.stopName ||
+    (boardingGroups.length === 1 ? boardingGroups[0].stopName : null);
+  const dropStopName = selectedDrop?.stopName ||
+    (droppingGroups.length === 1 ? droppingGroups[0].stopName : null);
+
   if (isLoading) {
     return (
       <div className="m-auto flex flex-col items-center gap-3 text-sm font-semibold text-neutral-600">
@@ -73,18 +92,20 @@ export function BoardingPointsTab({
                 <div className="min-w-0 flex-1">
                   <h4 id="pickup-heading" className="text-[15px] font-bold text-[#17212B]">Pickup points</h4>
                   <p className="truncate text-[12px] font-medium text-neutral-500">
-                    {boardingPoint || "Select your pickup point"}
+                    {pickupStopName || "Select a route stop"}
                   </p>
                 </div>
               </div>
               <div className="max-h-[46vh] overflow-y-auto overscroll-contain">
-                <BoardingPointOptionList
-                  points={boardingPoints}
-                  selectedPoint={boardingPoint}
-                  onSelect={setBoardingPoint}
-                  emptyMessage="No pickup location is available for this trip."
-                  accentLabel="pickup point"
-                />
+                {pickupIsParentSelection ? (
+                  <BoardingPointGroupList groups={boardingGroups} selectedPoint={boardingPoint}
+                    onSelect={setBoardingPoint} emptyMessage="No pickup location is available for this trip."
+                    accentLabel="pickup point" />
+                ) : (
+                  <BoardingPointOptionList points={boardingPoints} selectedPoint={boardingPoint}
+                    onSelect={setBoardingPoint} emptyMessage="No pickup location is available for this trip."
+                    accentLabel="pickup point" />
+                )}
               </div>
             </section>
 
@@ -96,18 +117,20 @@ export function BoardingPointsTab({
                 <div className="min-w-0 flex-1">
                   <h4 id="drop-heading" className="text-[15px] font-bold text-[#17212B]">Drop points</h4>
                   <p className="truncate text-[12px] font-medium text-neutral-500">
-                    {droppingPoint || "Select your drop point"}
+                    {dropStopName || "Select a route stop"}
                   </p>
                 </div>
               </div>
               <div className="max-h-[46vh] overflow-y-auto overscroll-contain">
-                <BoardingPointOptionList
-                  points={droppingPoints}
-                  selectedPoint={droppingPoint}
-                  onSelect={setDroppingPoint}
-                  emptyMessage="No drop location is available for this trip."
-                  accentLabel="drop point"
-                />
+                {dropIsParentSelection ? (
+                  <BoardingPointGroupList groups={droppingGroups} selectedPoint={droppingPoint}
+                    onSelect={setDroppingPoint} emptyMessage="No drop location is available for this trip."
+                    accentLabel="drop point" />
+                ) : (
+                  <BoardingPointOptionList points={droppingPoints} selectedPoint={droppingPoint}
+                    onSelect={setDroppingPoint} emptyMessage="No drop location is available for this trip."
+                    accentLabel="drop point" />
+                )}
               </div>
             </section>
           </div>
