@@ -41,7 +41,10 @@ export default function BusResultCard({ trip, onViewSeats, className = "" }: Bus
           }
         `}
       </style>
-      <div className={`result-card-bg rounded-2xl border border-[#D94328]/30 border-b-[3px] border-b-[#D94328]/80 p-4 md:p-6 lg:hover:shadow-[0_16px_40px_rgba(75,45,20,0.25)] lg:hover:border-b-[#D94328] lg:hover:-translate-y-0.5 transition-all w-full relative overflow-hidden ${onViewSeats ? 'cursor-pointer mb-4' : 'cursor-default'} ${className}`}>
+      <div
+        className={`result-card-bg rounded-2xl border border-[#D94328]/30 border-b-[3px] border-b-[#D94328]/80 p-4 md:p-6 lg:hover:shadow-[0_16px_40px_rgba(75,45,20,0.25)] lg:hover:border-b-[#D94328] lg:hover:-translate-y-0.5 transition-all w-full relative overflow-hidden ${onViewSeats && availableSeats > 0 ? 'cursor-pointer' : 'cursor-default'} ${className}`}
+        onClick={() => { if (onViewSeats && availableSeats > 0) onViewSeats(trip); }}
+      >
         {/* Paper texture overlay */}
         <img
           src="/images/image.png"
