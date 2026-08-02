@@ -60,14 +60,23 @@ export interface EsewaCheckoutInput {
     gender: string;
     seatNo: string;
   }>;
-  boardingPoint: { name: string; time?: string };
-  droppingPoint: { name: string; time?: string };
+  boardingPoint: CheckoutBoardingSelection;
+  droppingPoint: CheckoutBoardingSelection;
   bookedFrom?: string;
   bookedTo?: string;
   bookedDepartureTime?: string;
   bookedArrivalTime?: string;
   couponCode?: string;
   smMoneyToUse?: number;
+}
+
+export interface CheckoutBoardingSelection {
+  name: string;
+  time?: string;
+  sourceType?: "BOARDING_LOCATION" | "STOP_FALLBACK";
+  stopId?: string;
+  boardingLocationId?: string | null;
+  assignmentId?: string | null;
 }
 
 export interface EsewaCheckout {

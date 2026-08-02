@@ -90,10 +90,15 @@ export default function ForgotPasswordPage() {
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     clearError();
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (!cleanPhone || !/^(97|98)\d{8}$/.test(cleanPhone)) {
+      setError("Please enter a valid 10-digit Nepal mobile number (97 or 98 series).");
+      return;
+    }
     setIsLoading(true);
 
     try {
-      await requestPasswordReset(phone);
+      await requestPasswordReset(cleanPhone);
       setOtp("");
       setStep("otp");
       countdown.start();
