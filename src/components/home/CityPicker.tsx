@@ -3,6 +3,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api";
+import { formatStopSecondaryLabel } from "./cityPickerHelpers";
+
+import { SelectedStop } from "@/types/search";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -10,8 +13,29 @@ interface Stop {
   id: string;
   name: string;
   code: string;
-  type: "CITY" | "TOWN" | "JUNCTION" | string;
-  state: string | null;
+  type: string;
+  province: string | null;
+  municipality: string | null;
+  district: string | null;
+  parentStop: { id: string; name: string } | null;
+}
+
+export function toSelectedStop(stop: Stop): SelectedStop {
+  return {
+    id: stop.id,
+    name: stop.name,
+    code: stop.code || undefined,
+    municipality: stop.municipality || null,
+    district: stop.district || null,
+    province: stop.province || null,
+    parentStopId: stop.parentStop?.id || null,
+    parentStop: stop.parentStop
+      ? {
+          id: stop.parentStop.id,
+          name: stop.parentStop.name,
+        }
+      : null,
+  };
 }
 
 interface StopsResponse {
@@ -98,7 +122,7 @@ interface CityPickerProps {
   label: string;
   placeholder: string;
   value: string;            // The selected city name (or "")
-  onChange: (city: string) => void;
+  onChange: (city: string, stop?: SelectedStop) => void;
   excludeCity?: string;
   shortCodeOnMobile?: boolean;
   dropdownAlign?: "left" | "right";
@@ -108,22 +132,26 @@ function StopRow({
   stop,
   isSelected,
   onSelect,
+  isChild = false,
 }: {
   stop: Stop;
   isSelected: boolean;
   onSelect: (stop: Stop) => void;
+  isChild?: boolean;
 }) {
+  const secondaryLabel = formatStopSecondaryLabel(stop);
+
   return (
-    <li>
-      <button
-        onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
-        onClick={() => onSelect(stop)}
-        className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
-          isSelected
-            ? "bg-[#D94328]/[0.08] text-[#D94328]"
-            : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
-        }`}
-      >
+    <button
+      onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
+      onClick={() => onSelect(stop)}
+      className={`w-full text-left px-4 py-2.5 transition-colors flex items-center justify-between group/item ${
+        isSelected
+          ? "bg-[#D94328]/[0.08] text-[#D94328]"
+          : "hover:bg-[#7A1D1B]/[0.04] text-neutral-900"
+      } ${isChild ? "pl-8" : ""}`}
+    >
+      <div className="flex flex-col">
         <span
           className={`text-[15px] font-semibold transition-colors ${
             isSelected
@@ -133,17 +161,22 @@ function StopRow({
         >
           {stop.name}
         </span>
-        <span
-          className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${
-            isSelected
-              ? "text-[#D94328]/60"
-              : "text-neutral-400 group-hover/item:text-[#D94328]/60"
-          }`}
-        >
-          {stop.code}
-        </span>
-      </button>
-    </li>
+        {secondaryLabel && (
+          <span className="text-[11px] text-neutral-400 mt-0.5">
+            {secondaryLabel}
+          </span>
+        )}
+      </div>
+      <span
+        className={`text-[11px] font-bold ml-3 flex-shrink-0 transition-colors ${
+          isSelected
+            ? "text-[#D94328]/60"
+            : "text-neutral-400 group-hover/item:text-[#D94328]/60"
+        }`}
+      >
+        {stop.code}
+      </span>
+    </button>
   );
 }
 
@@ -168,6 +201,7 @@ export function CityPicker({
   const [searchLoading, setSearchLoading] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const searchRequestIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -178,6 +212,14 @@ export function CityPicker({
       setPopularStops(stops);
       setPopularLoading(false);
     });
+  }, []);
+
+  // Cleanup pending search timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      searchRequestIdRef.current++;
+    };
   }, []);
 
   // ── Keep inputText in sync when value changes (e.g. swap button) ─────────
@@ -237,19 +279,24 @@ export function CityPicker({
       onChange(""); // Decommit any previous selection
       if (!isOpen) setIsOpen(true);
 
+      const currentRequestId = ++searchRequestIdRef.current;
+
       // Clear previous debounce
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
       if (val.trim().length < 2) {
         setSearchResults([]);
+        setSearchLoading(false);
         return;
       }
 
       setSearchLoading(true);
       debounceRef.current = setTimeout(async () => {
         const results = await searchStops(val.trim());
-        setSearchResults(results);
-        setSearchLoading(false);
+        if (currentRequestId === searchRequestIdRef.current) {
+          setSearchResults(results);
+          setSearchLoading(false);
+        }
       }, 250);
     },
     [isOpen, onChange]
@@ -271,7 +318,8 @@ export function CityPicker({
 
   const handleSelect = (stop: Stop) => {
     if (excludeCity && stop.name === excludeCity) return;
-    onChange(stop.name);
+    const selectedStop = toSelectedStop(stop);
+    onChange(stop.name, selectedStop);
     setInputText(stop.name);
     setIsOpen(false);
     setSearchResults([]);

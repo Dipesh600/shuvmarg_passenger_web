@@ -57,8 +57,11 @@ export function applyFilters(trips: TripResult[], filters: SearchFilters): TripR
 
     // Amenities
     if (filters.amenities.length > 0) {
+      const busAmenitiesLower = (trip.busDetail.amenities || []).map((a) =>
+        typeof a === "string" ? a.toLowerCase() : (a as any)?.name?.toLowerCase() || ""
+      );
       const hasAllAmenities = filters.amenities.every((a) =>
-        trip.busDetail.amenities.includes(a)
+        busAmenitiesLower.includes(a.toLowerCase())
       );
       if (!hasAllAmenities) return false;
     }

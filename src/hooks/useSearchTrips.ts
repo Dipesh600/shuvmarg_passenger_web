@@ -28,9 +28,11 @@ interface UseSearchTripsOptions {
   from: string;
   to: string;
   date: Date;
+  fromStopId?: string;
+  toStopId?: string;
 }
 
-export function useSearchTrips({ from, to, date }: UseSearchTripsOptions) {
+export function useSearchTrips({ from, to, date, fromStopId, toStopId }: UseSearchTripsOptions) {
   const [trips, setTrips] = useState<TripResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,18 +52,24 @@ export function useSearchTrips({ from, to, date }: UseSearchTripsOptions) {
 
     try {
       const startTime = Date.now();
+      const payload: Record<string, string> = { from, to, date: dateStr };
+      if (fromStopId && toStopId) {
+        payload.fromStopId = fromStopId;
+        payload.toStopId = toStopId;
+      }
+
       const response = await request<SearchTripsResponse>(
         "/api/public/searchTrips?limit=50",
         {
           method: "POST",
-          body: { from, to, date: dateStr },
+          body: payload,
           skipAuth: true, // Public endpoint — no token needed
         }
       );
 
-      // Enforce a minimum loading time of 800ms for smoother UX transitions
+      // Enforce a smooth 450ms loading window so the skeleton loader cards display clearly on date changes
       const elapsed = Date.now() - startTime;
-      const minDelay = 800;
+      const minDelay = 450;
       if (elapsed < minDelay) {
         await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed));
       }
@@ -77,7 +85,7 @@ export function useSearchTrips({ from, to, date }: UseSearchTripsOptions) {
     } finally {
       setIsLoading(false);
     }
-  }, [from, to, dateStr]);
+  }, [from, to, dateStr, fromStopId, toStopId]);
 
   useEffect(() => {
     search();

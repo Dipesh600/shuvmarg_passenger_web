@@ -1,8 +1,50 @@
+export interface SelectedStop {
+  id: string;
+  name: string;
+  code?: string;
+  municipality?: string | null;
+  district?: string | null;
+  province?: string | null;
+  parentStopId?: string | null;
+  parentStop?: {
+    id: string;
+    name: string;
+    code?: string;
+  } | null;
+}
+
 export interface BoardingPoint {
   id?: string;
   name: string;
+  location?: string;
   time?: string;
   address?: string;
+  sourceType?: "BOARDING_LOCATION" | "STOP_FALLBACK";
+  sourceLayer?: "TRIP" | "SERVICE" | "OPERATOR" | "STOP";
+  usage?: "PICKUP" | "DROP";
+  stopId?: string;
+  boardingLocationId?: string | null;
+  assignmentId?: string | null;
+  canonicalName?: string;
+  stopName?: string;
+  parentStopId?: string | null;
+  municipality?: string | null;
+  district?: string | null;
+  province?: string | null;
+  isChildOfSelection?: boolean;
+  landmark?: string | null;
+  reportingInstructions?: string | null;
+  coordinates?: { lat: number; lng: number };
+}
+
+export interface BoardingOptionGroup {
+  stopId: string;
+  stopName: string;
+  municipality?: string | null;
+  district?: string | null;
+  province?: string | null;
+  isChildOfSelection: boolean;
+  options: BoardingPoint[];
 }
 
 export interface BusDetail {
@@ -44,6 +86,12 @@ export interface TripResult {
   availableSeats: number;
   busDetail: BusDetail;
   routeDetail: RouteDetail | null;
+  boardingContext?: {
+    originStopId: string;
+    destinationStopId: string;
+    originSelectionStopId?: string;
+    destinationSelectionStopId?: string;
+  } | null;
 }
 
 // ─── Filter State ──────────────────────────────────────────────────────────
