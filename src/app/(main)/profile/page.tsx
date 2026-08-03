@@ -1,73 +1,117 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import React, { useEffect, useState, useCallback } from "react";
 import ProfileHero from "@/components/profile/ProfileHero";
+import ProfileIdentityCard from "@/components/profile/ProfileIdentityCard";
+import ProfileEditForm from "@/components/profile/ProfileEditForm";
+import ProfileSecurityCard from "@/components/profile/ProfileSecurityCard";
+import UnauthenticatedProfileState from "@/components/profile/UnauthenticatedProfileState";
+import { useAuth } from "@/context/AuthContext";
+import { request } from "@/lib/api";
+
+interface UserProfileData {
+  _id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  address?: string;
+  isVerified?: boolean;
+  referralCode?: string;
+  profilePicture?: string;
+}
 
 export default function ProfilePage() {
-  // TODO: Replace with actual authentication state from your auth provider
-  const isAuthenticated = false; // Set to false to show the logged-out state
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
 
-  if (!isAuthenticated) {
+  const loadProfile = useCallback(async () => {
+    if (!isAuthenticated || !user) return;
+    setIsFetching(true);
+    try {
+      const res = await request<{ status: boolean; data: UserProfileData }>("/api/getUserDetail");
+      if (res.status && res.data) {
+        setProfile(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to load user profile:", err);
+    } finally {
+      setIsFetching(false);
+    }
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  // Loading State
+  if (authLoading || (isAuthenticated && isFetching && !profile)) {
     return (
       <>
         <ProfileHero />
-        <section className="bg-white py-8 md:py-12 min-h-[50vh]">
-          <div className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-col items-center justify-center text-center"
-            >
-              <div className="relative w-[240px] h-[240px] md:w-[280px] md:h-[280px] mb-6 opacity-90">
-                <Image
-                  src="/images/offers/empty state.webp"
-                  alt="Login Required"
-                  fill
-                  className="object-contain"
-                  priority
-                />
+        <section className="bg-[#FAF7F2] py-12 min-h-[60vh]">
+          <div className="max-w-4xl mx-auto px-4 md:px-8">
+            <div className="bg-white rounded-2xl p-8 border border-[#E2D6C6] shadow-sm animate-pulse flex flex-col gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-2xl bg-neutral-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-6 w-40 bg-neutral-200 rounded" />
+                  <div className="h-4 w-28 bg-neutral-100 rounded" />
+                </div>
               </div>
-              
-              <h2 className="text-2xl md:text-3xl font-display font-bold text-neutral-900 mb-3">
-                Access Your Profile
-              </h2>
-              
-              <p className="text-neutral-600 text-base md:text-lg max-w-md mb-8">
-                Log in to securely view your profile, manage preferences, and update traveler details.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-[400px]">
-                <Link 
-                  href="/login"
-                  className="inline-flex items-center justify-center h-12 md:h-14 px-8 rounded-xl bg-[#D94328] text-white font-bold text-base md:text-lg hover:bg-[#C93522] transition-colors shadow-sm w-full"
-                >
-                  Log In
-                </Link>
-                <Link 
-                  href="/"
-                  className="inline-flex items-center justify-center h-12 md:h-14 px-8 rounded-xl bg-transparent border-2 border-[#D94328] text-[#D94328] font-bold text-base md:text-lg hover:bg-neutral-50 transition-colors w-full"
-                >
-                  Return Home
-                </Link>
-              </div>
-            </motion.div>
+              <div className="h-32 bg-neutral-100 rounded-xl" />
+              <div className="h-48 bg-neutral-100 rounded-xl" />
+            </div>
           </div>
         </section>
       </>
     );
   }
 
-  // Future authenticated state
+  // Unauthenticated State
+  if (!isAuthenticated || !user) {
+    return (
+      <>
+        <ProfileHero />
+        <UnauthenticatedProfileState />
+      </>
+    );
+  }
+
+  // Authenticated State
+  const displayName = profile?.name || user.name || "Passenger";
+  const displayPhone = profile?.phone || user.phone || "";
+  const displayEmail = profile?.email || user.email || "";
+
   return (
     <>
       <ProfileHero />
-      <section className="bg-white py-8 md:py-12 min-h-[50vh]">
-        <div className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24">
-          <p>Profile content will go here.</p>
+
+      <section className="bg-[#FAF7F2] py-8 md:py-12 min-h-[60vh]">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-6">
+
+          <ProfileIdentityCard
+            displayName={displayName}
+            displayPhone={displayPhone}
+            displayEmail={displayEmail}
+            displayReferral={profile?.referralCode}
+          />
+
+          <ProfileEditForm
+            initialName={displayName}
+            initialGender={profile?.gender || user.gender || "male"}
+            initialAddress={profile?.address || ""}
+            displayPhone={displayPhone}
+            displayEmail={displayEmail}
+            onProfileUpdated={loadProfile}
+          />
+
+          <ProfileSecurityCard
+            displayName={displayName}
+            displayPhone={displayPhone}
+          />
+
         </div>
       </section>
     </>

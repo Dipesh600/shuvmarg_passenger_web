@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api";
 import { formatStopSecondaryLabel } from "./cityPickerHelpers";
@@ -204,6 +205,7 @@ export function CityPicker({
   const searchRequestIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   // ── Load popular stops once ──────────────────────────────────────────────
   useEffect(() => {
@@ -227,7 +229,7 @@ export function CityPicker({
     if (!isOpen) setInputText(value);
   }, [value, isOpen]);
 
-  // ── Close on outside click ────────────────────────────────────────────────
+  // ── Close on outside click & update position on scroll/resize ─────────────
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -242,9 +244,25 @@ export function CityPicker({
         }
       }
     };
+
+    const updatePos = () => {
+      if (containerRef.current && isOpen) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDropdownPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+      }
+    };
+
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [inputText, value, onChange]);
+    if (isOpen) {
+      window.addEventListener("scroll", updatePos, { capture: true, passive: true });
+      window.addEventListener("resize", updatePos, { passive: true });
+    }
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      window.removeEventListener("scroll", updatePos, { capture: true } as any);
+      window.removeEventListener("resize", updatePos);
+    };
+  }, [inputText, value, onChange, isOpen]);
 
   // ── Short code on narrow containers ──────────────────────────────────────
   const [useShortCode, setUseShortCode] = useState(false);
@@ -305,6 +323,11 @@ export function CityPicker({
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setInputText(value);
     setIsOpen(true);
+    // Compute dropdown position from the container's screen rect
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+    }
     const target = e.target;
     setTimeout(() => target.select(), 10);
 
@@ -380,72 +403,78 @@ export function CityPicker({
         </div>
       </div>
 
-      {/* ── Dropdown ── */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.15 }}
-            className={`absolute top-[110%] ${
-              dropdownAlign === "right"
-                ? "right-0 md:left-0 md:right-auto"
-                : "left-0"
-            } z-[200] w-[calc(100vw-32px)] max-w-[320px] md:w-[300px] md:max-w-none bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-neutral-100 overflow-hidden`}
-          >
-            {/* Section label */}
-            {showPopularLabel && (
-              <div className="px-4 pt-3 pb-1.5">
-                <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
-                  Popular Stops
-                </span>
-              </div>
-            )}
+      {/* ── Dropdown — rendered via portal to escape overflow:hidden parents ── */}
+      {typeof window !== "undefined" && createPortal(
+        <AnimatePresence>
+          {isOpen && dropdownPos && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                position: "fixed",
+                top: dropdownPos.top,
+                left: dropdownPos.left,
+                width: Math.min(Math.max(dropdownPos.width, 280), 360),
+                zIndex: 9999,
+              }}
+              className="bg-white rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.14)] border border-neutral-100 overflow-hidden"
+            >
+              {/* Section label */}
+              {showPopularLabel && (
+                <div className="px-4 pt-3 pb-1.5">
+                  <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
+                    Popular Stops
+                  </span>
+                </div>
+              )}
 
-            {/* Loading skeleton */}
-            {isLoadingDropdown && (
-              <div className="px-4 py-3 space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center justify-between animate-pulse">
-                    <div className="h-4 bg-neutral-100 rounded w-2/3" />
-                    <div className="h-3 bg-neutral-100 rounded w-8" />
-                  </div>
-                ))}
-              </div>
-            )}
+              {/* Loading skeleton */}
+              {isLoadingDropdown && (
+                <div className="px-4 py-3 space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between animate-pulse">
+                      <div className="h-4 bg-neutral-100 rounded w-2/3" />
+                      <div className="h-3 bg-neutral-100 rounded w-8" />
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            {/* No results */}
-            {showNoResults && !isLoadingDropdown && (
-              <div className="px-4 py-6 text-center">
-                <p className="text-[14px] font-bold text-neutral-700">No stops found</p>
-                <p className="text-[12px] text-neutral-400 mt-1">Try a different spelling.</p>
-              </div>
-            )}
+              {/* No results */}
+              {showNoResults && !isLoadingDropdown && (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-[14px] font-bold text-neutral-700">No stops found</p>
+                  <p className="text-[12px] text-neutral-400 mt-1">Try a different spelling.</p>
+                </div>
+              )}
 
-            {/* Stop list */}
-            {!isLoadingDropdown && displayList.length > 0 && (
-              <ul className="py-1.5 max-h-[280px] overflow-y-auto">
-                {displayList.map((stop) => (
-                  <StopRow
-                    key={stop.id}
-                    stop={stop}
-                    isSelected={stop.name === value}
-                    onSelect={handleSelect}
-                  />
-                ))}
-              </ul>
-            )}
+              {/* Stop list */}
+              {!isLoadingDropdown && displayList.length > 0 && (
+                <ul className="py-1.5 max-h-[280px] overflow-y-auto">
+                  {displayList.map((stop) => (
+                    <StopRow
+                      key={stop.id}
+                      stop={stop}
+                      isSelected={stop.name === value}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </ul>
+              )}
 
-            {/* Empty popular (DB not seeded yet) */}
-            {!isFiltering && !isLoadingDropdown && displayList.length === 0 && (
-              <div className="px-4 py-6 text-center">
-                <p className="text-[13px] text-neutral-400">Type a city name to search.</p>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {/* Empty popular (DB not seeded yet) */}
+              {!isFiltering && !isLoadingDropdown && displayList.length === 0 && (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-[13px] text-neutral-400">Type a city name to search.</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

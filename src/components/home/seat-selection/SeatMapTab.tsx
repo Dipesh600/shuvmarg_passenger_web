@@ -79,7 +79,7 @@ export default function SeatMapTab({
   return (
     <div className="w-full flex h-full min-h-0 relative">
       {/* Left Pane - Seat Map */}
-      <div className="w-full md:w-[65%] lg:w-[70%] border-r-0 md:border-r border-[#D8C5A8] bg-transparent p-4 md:p-8 flex flex-col items-center overflow-y-auto min-h-0 pb-[80px] md:pb-8">
+      <div className="w-full md:w-[65%] lg:w-[70%] border-r-0 md:border-r border-[#D8C5A8] bg-transparent p-4 md:p-8 flex flex-col items-center overflow-y-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden min-h-0 pb-[80px] md:pb-8">
         {/* Seat Types Legend */}
         <div className="mb-4 w-full max-w-sm flex flex-col items-center">
           <span className="text-[12px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
