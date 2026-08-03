@@ -117,20 +117,10 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   }, [initialBoardingPoint, initialDroppingPoint, user?.phone]);
 
   const handleHoldExpired = useCallback(() => {
-<<<<<<< HEAD
-    resetAttemptState();
-    showToast(
-      "Your seat reservation time ended. Please select your seats again.",
-      "error"
-    );
-    void refetch();
-  }, [refetch, resetAttemptState, showToast]);
-=======
     isPreparingRef.current = false;
     setIsPreparing(false);
     setIsHoldExpiredModalOpen(true);
   }, []);
->>>>>>> dev
 
   const {
     hold,

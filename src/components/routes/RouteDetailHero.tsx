@@ -71,9 +71,6 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
   const fromStopIdParam = searchParams.get("fromStopId") || "";
   const toStopIdParam = searchParams.get("toStopId") || "";
 
-  const fromStopIdParam = searchParams.get("fromStopId") || "";
-  const toStopIdParam = searchParams.get("toStopId") || "";
-
   return (
     <>
       {/* ── SCROLLS AWAY: original hero spacing & background ── */}
