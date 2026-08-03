@@ -130,8 +130,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     clear: clearHold,
   } = useBookingHold(handleHoldExpired);
 
-<<<<<<< HEAD
-=======
   const handleBackToSearch = useCallback(() => {
     setIsHoldExpiredModalOpen(false);
     clearHold();
@@ -141,7 +139,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     onClose();
   }, [clearHold, onClose, refetch, releaseHold, resetAttemptState]);
 
->>>>>>> dev
   const abandonBookingSession = useCallback(() => {
     resetAttemptState();
     void releaseHold().catch(() => undefined);
@@ -248,8 +245,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     };
   }, []);
-<<<<<<< HEAD
-=======
 
   // Lock body scrolling when drawer is open
   useEffect(() => {
@@ -264,7 +259,6 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
       };
     }
   }, [isRendered, isVisible]);
->>>>>>> dev
 
   // Close on escape key
   useEffect(() => {
@@ -454,11 +448,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
     <>
       {/* Backdrop */}
       <div
-<<<<<<< HEAD
-        className={`fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-[100] transition-opacity duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-=======
         className={`fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-[100] transition-opacity duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] touch-none select-none ${isVisible ? 'opacity-100' : 'opacity-0'}`}
->>>>>>> dev
         onClick={handleClose}
         onTouchMove={(e) => {
           e.preventDefault();
@@ -651,13 +641,11 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
           />
         )}
 
-<<<<<<< HEAD
-=======
         <SeatHoldExpiredModal
           open={isHoldExpiredModalOpen}
           onBackToSearch={handleBackToSearch}
         />
->>>>>>> dev
+
         {/* Bottom Checkout Bar - Liquid smooth GPU slide up & down transition */}
         <div
           className={`border-t border-[#D8C5A8]/80 px-4 md:px-8 py-3 md:py-3.5 bg-[#EED9BD] flex-shrink-0 relative z-20 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${
@@ -705,11 +693,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
                   await startEsewaPayment();
                 }
               }}
-<<<<<<< HEAD
-              disabled={isPreparing || (activeTab === 'points' && (!boardingPoint || !droppingPoint)) || (activeTab === 'checkout' && !hold)}
-=======
               disabled={isPreparing || isHoldExpiredModalOpen || (activeTab === 'points' && (!boardingPoint || !droppingPoint)) || (activeTab === 'checkout' && !hold)}
->>>>>>> dev
               className="h-[46px] md:h-[50px] min-w-[140px] md:min-w-[210px] px-5 md:px-8 bg-[#D94328] text-white rounded-xl text-[13px] md:text-[15px] font-bold hover:bg-[#C93522] active:scale-[0.98] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shrink-0 select-none"
             >
               {isPreparing ? (
