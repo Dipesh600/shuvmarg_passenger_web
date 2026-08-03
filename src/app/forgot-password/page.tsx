@@ -98,7 +98,11 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      await requestPasswordReset(cleanPhone);
+      const res = await requestPasswordReset(cleanPhone);
+      if (res && res.status === false) {
+        setError(res.message || "No registered account found with this phone number. Please check the number or sign up.");
+        return;
+      }
       setOtp("");
       setStep("otp");
       countdown.start();

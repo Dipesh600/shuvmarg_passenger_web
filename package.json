@@ -13,7 +13,8 @@
     "test:city-picker": "node --experimental-strip-types --test tests/city-picker.test.mjs",
     "test:seat-hold-expiry": "node --experimental-strip-types --test tests/seat-hold-expired-modal.test.mjs",
     "test:coupons": "node --experimental-strip-types --test tests/backend-coupon-integration.test.mjs",
-    "test:signup": "node --test tests/signup-verification-token.test.mjs"
+    "test:signup": "node --test tests/signup-verification-token.test.mjs",
+    "test:forgot-password": "node --test tests/forgot-password.test.mjs"
   },
   "dependencies": {
     "date-fns": "^4.4.0",
