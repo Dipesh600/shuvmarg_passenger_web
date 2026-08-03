@@ -191,6 +191,7 @@ export default function SignupPage() {
 
   // Step 2 field
   const [otp, setOtp] = useState("");
+  const [verificationToken, setVerificationToken] = useState("");
 
   // Step 3 fields
   const [name, setName] = useState("");
@@ -239,7 +240,10 @@ export default function SignupPage() {
     clearError();
     setIsLoading(true);
     try {
-      await verifyPhoneOTP(phone, otp);
+      const res = await verifyPhoneOTP(phone, otp);
+      if (res.verificationToken) {
+        setVerificationToken(res.verificationToken);
+      }
       setStep("details");
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : "Invalid OTP. Please try again.");
@@ -283,6 +287,7 @@ export default function SignupPage() {
         gender: gender as "male" | "female",
         email: email || undefined,
         referralCode: referralCode.trim().toUpperCase() || undefined,
+        verificationToken: verificationToken || undefined,
       });
       router.replace("/login?registered=1");
     } catch (err) {
