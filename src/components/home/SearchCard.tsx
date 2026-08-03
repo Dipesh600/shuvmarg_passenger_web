@@ -52,6 +52,9 @@ export default function SearchCard({
   const [to, setTo] = useState(initialTo);
   const [fromStop, setFromStop] = useState<SelectedStop | null>(null);
   const [toStop, setToStop] = useState<SelectedStop | null>(null);
+  // Track active stop IDs in state so the swap button can flip them correctly
+  const [activeFromStopId, setActiveFromStopId] = useState(initialFromStopId);
+  const [activeToStopId, setActiveToStopId] = useState(initialToStopId);
   const [date, setDate] = useState<Date>(initialDate || new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -116,18 +119,20 @@ export default function SearchCard({
   const handleFromChange = (cityName: string, stop?: SelectedStop) => {
     setFrom(cityName);
     setFromStop(stop || null);
+    setActiveFromStopId(stop?.id || "");
   };
 
   const handleToChange = (cityName: string, stop?: SelectedStop) => {
     setTo(cityName);
     setToStop(stop || null);
+    setActiveToStopId(stop?.id || "");
   };
 
   const handleExecuteSearch = (targetDate: Date, targetFrom = from, targetTo = to) => {
     if (targetFrom && targetTo && targetFrom !== targetTo) {
       const dateStr = format(targetDate, "yyyy-MM-dd");
-      const fromId = fromStop?.id || initialFromStopId || "";
-      const toId = toStop?.id || initialToStopId || "";
+      const fromId = fromStop?.id || activeFromStopId || "";
+      const toId = toStop?.id || activeToStopId || "";
 
       let searchUrl = `/routes/${encodeURIComponent(targetFrom.toLowerCase())}-to-${encodeURIComponent(targetTo.toLowerCase())}?date=${dateStr}&from=${encodeURIComponent(targetFrom)}&to=${encodeURIComponent(targetTo)}`;
       if (fromId && toId) {
@@ -167,10 +172,14 @@ export default function SearchCard({
     const nextTo = from;
     const nextFromStop = toStop;
     const nextToStop = fromStop;
+    const nextFromStopId = activeToStopId;
+    const nextToStopId = activeFromStopId;
     setFrom(nextFrom);
     setTo(nextTo);
     setFromStop(nextFromStop);
     setToStop(nextToStop);
+    setActiveFromStopId(nextFromStopId);
+    setActiveToStopId(nextToStopId);
   };
 
   let scrollerStartDate = new Date();

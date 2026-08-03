@@ -1,73 +1,121 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import React, { useEffect, useState, useMemo } from "react";
 import WalletHero from "@/components/wallet/WalletHero";
+import WalletBalanceCard from "@/components/wallet/WalletBalanceCard";
+import WalletTransactionList, { WalletFilterType, WalletTransactionItem } from "@/components/wallet/WalletTransactionList";
+import UnauthenticatedWalletState from "@/components/wallet/UnauthenticatedWalletState";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
+import { request } from "@/lib/api";
+
+interface WalletDetailsData {
+  balance?: number;
+  lockedBalance?: number;
+  expiringAmount?: number;
+  activityFeed?: {
+    docs?: WalletTransactionItem[];
+  };
+  unscratchedCardCount?: number;
+}
 
 export default function WalletPage() {
-  // TODO: Replace with actual authentication state from your auth provider
-  const isAuthenticated = false; // Set to false to show the logged-out state
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { showToast } = useToast();
 
-  if (!isAuthenticated) {
+  const [walletData, setWalletData] = useState<WalletDetailsData | null>(null);
+  const [activeFilter, setActiveFilter] = useState<WalletFilterType>("all");
+  const [isFetching, setIsFetching] = useState(false);
+
+  // Fetch real wallet details securely when logged in
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setWalletData(null);
+      return;
+    }
+
+    let isMounted = true;
+    async function loadWallet() {
+      setIsFetching(true);
+      try {
+        const res = await request<{ status: boolean; data: WalletDetailsData }>(
+          `/api/wallet/details?filter=${activeFilter}`
+        );
+        if (isMounted && res.status && res.data) {
+          setWalletData(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to load wallet details:", err);
+        if (isMounted) {
+          showToast("Unable to fetch wallet balance. Please try again.", "error");
+        }
+      } finally {
+        if (isMounted) setIsFetching(false);
+      }
+    }
+
+    loadWallet();
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, user, activeFilter, showToast]);
+
+  const transactions = useMemo(() => {
+    return walletData?.activityFeed?.docs || [];
+  }, [walletData]);
+
+  // Loading State
+  if (authLoading || (isAuthenticated && isFetching && !walletData)) {
     return (
       <>
         <WalletHero />
-        <section className="bg-white py-8 md:py-12 min-h-[50vh]">
-          <div className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-col items-center justify-center text-center"
-            >
-              <div className="relative w-[240px] h-[240px] md:w-[280px] md:h-[280px] mb-6 opacity-90">
-                <Image
-                  src="/images/offers/wallet.webp"
-                  alt="Login Required"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              
-              <h2 className="text-2xl md:text-3xl font-display font-bold text-neutral-900 mb-3">
-                Access Your Wallet
-              </h2>
-              
-              <p className="text-neutral-600 text-base md:text-lg max-w-md mb-8">
-                Log in to view your balance, manage refunds, and track your recent transactions.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-[400px]">
-                <Link 
-                  href="/login"
-                  className="inline-flex items-center justify-center h-12 md:h-14 px-8 rounded-xl bg-[#D94328] text-white font-bold text-base md:text-lg hover:bg-[#C93522] transition-colors shadow-sm w-full"
-                >
-                  Log In
-                </Link>
-                <Link 
-                  href="/"
-                  className="inline-flex items-center justify-center h-12 md:h-14 px-8 rounded-xl bg-transparent border-2 border-[#D94328] text-[#D94328] font-bold text-base md:text-lg hover:bg-neutral-50 transition-colors w-full"
-                >
-                  Return Home
-                </Link>
-              </div>
-            </motion.div>
+        <section className="bg-[#FAF7F2] py-12 min-h-[60vh]">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-6">
+            <div className="bg-white rounded-2xl p-8 border border-[#E2D6C6] shadow-sm animate-pulse space-y-6">
+              <div className="h-24 bg-neutral-200 rounded-xl" />
+              <div className="h-12 bg-neutral-100 rounded-xl" />
+              <div className="h-48 bg-neutral-100 rounded-xl" />
+            </div>
           </div>
         </section>
       </>
     );
   }
 
-  // Future authenticated state
+  // Unauthenticated State
+  if (!isAuthenticated || !user) {
+    return (
+      <>
+        <WalletHero />
+        <UnauthenticatedWalletState />
+      </>
+    );
+  }
+
+  // Authenticated State
+  const balance = walletData?.balance || 0;
+  const lockedBalance = walletData?.lockedBalance || 0;
+  const unscratchedCount = walletData?.unscratchedCardCount || 0;
+
   return (
     <>
       <WalletHero />
-      <section className="bg-white py-8 md:py-12 min-h-[50vh]">
-        <div className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24">
-          <p>Wallet content will go here.</p>
+
+      <section className="bg-[#FAF7F2] py-8 md:py-12 min-h-[60vh]">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-6">
+
+          <WalletBalanceCard
+            balance={balance}
+            lockedBalance={lockedBalance}
+            unscratchedCount={unscratchedCount}
+          />
+
+          <WalletTransactionList
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            transactions={transactions}
+          />
+
         </div>
       </section>
     </>

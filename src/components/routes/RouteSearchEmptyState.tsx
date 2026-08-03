@@ -3,8 +3,9 @@
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format, addDays, parse, isValid } from "date-fns";
-import { Calendar, Search, ArrowUp } from "lucide-react";
+import { Calendar, Search, ArrowUp, WifiOff, AlertCircle, RotateCcw } from "lucide-react";
 import { triggerHaptic } from "@/utils/haptics";
+import { sanitizeErrorMessage } from "@/utils/errorSanitizer";
 
 interface RouteSearchEmptyStateProps {
   origin: string;
@@ -19,6 +20,13 @@ export default function RouteSearchEmptyState({
 }: RouteSearchEmptyStateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const sanitizedError = useMemo(() => (error ? sanitizeErrorMessage(error) : null), [error]);
+  const lowerError = (error || "").toLowerCase();
+  const isNetworkError =
+    lowerError.includes("failed to fetch") ||
+    lowerError.includes("network") ||
+    lowerError.includes("econnrefused");
 
   const dateParam = searchParams.get("date");
   const currentDate = useMemo(() => {
@@ -52,6 +60,11 @@ export default function RouteSearchEmptyState({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleRetry = () => {
+    triggerHaptic("medium");
+    window.location.reload();
+  };
+
   return (
     <>
       <style>
@@ -73,30 +86,48 @@ export default function RouteSearchEmptyState({
         />
 
         <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center">
-          {/* Icon Badge */}
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/70 shadow-sm border border-white flex items-center justify-center mb-4 text-[#D94328] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#F6E8D4]/50 to-transparent" />
-            <Search className="w-8 h-8 relative z-10" />
-          </div>
-
-          {error ? (
+          {sanitizedError ? (
             <>
-              <h3 className="text-[20px] font-bold text-[#0B3150] mb-2">
-                Something went wrong
+              {/* Error Icon Badge */}
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#D94328]/10 shadow-sm border border-[#D94328]/20 flex items-center justify-center mb-4 text-[#D94328] relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#F6E8D4]/50 to-transparent" />
+                {isNetworkError ? (
+                  <WifiOff className="w-8 h-8 relative z-10" />
+                ) : (
+                  <AlertCircle className="w-8 h-8 relative z-10" />
+                )}
+              </div>
+
+              <h3 className="text-[20px] md:text-[22px] font-bold text-[#0B3150] mb-2 tracking-tight">
+                {isNetworkError ? "Unable to Connect" : "Search Error"}
               </h3>
-              <p className="text-[14px] text-[#5D4B3B] mb-6 max-w-[340px] mx-auto font-medium">
-                {error}
+              <p className="text-[14px] text-[#5D4B3B] mb-6 max-w-sm mx-auto font-medium leading-relaxed">
+                {sanitizedError}
               </p>
-              <button
-                onClick={handleModifySearch}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#D94328] hover:bg-[#C93522] text-white text-[14px] font-bold rounded-xl transition-all shadow-sm shadow-[#D94328]/20 active:scale-95"
-              >
-                <ArrowUp className="w-4 h-4" />
-                Modify Search
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  onClick={handleRetry}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#D94328] hover:bg-[#C93522] text-white text-[14px] font-bold rounded-xl transition-all shadow-md shadow-[#D94328]/20 active:scale-95"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Retry Search
+                </button>
+                <button
+                  onClick={handleModifySearch}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-neutral-100 text-[#0B3150] text-[14px] font-bold rounded-xl border border-[#D8BFA6] transition-all shadow-sm active:scale-95"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                  Modify Search
+                </button>
+              </div>
             </>
           ) : (
             <>
+              {/* Normal Search Icon Badge */}
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/70 shadow-sm border border-white flex items-center justify-center mb-4 text-[#D94328] relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#F6E8D4]/50 to-transparent" />
+                <Search className="w-8 h-8 relative z-10" />
+              </div>
               <h3 className="text-[20px] md:text-[22px] font-bold text-[#0B3150] mb-2 tracking-tight">
                 No buses found for this date
               </h3>
