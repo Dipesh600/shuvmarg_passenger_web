@@ -2,8 +2,7 @@
 
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { format, parse, isValid } from "date-fns";
+import { parse, isValid } from "date-fns";
 import SearchCard from "@/components/home/SearchCard";
 
 function easeOutQuart(t: number) {
@@ -33,9 +32,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
     return isValid(d) ? d : new Date();
   }, [dateParam]);
 
-  const formattedDate = format(parsedDate, "MMMM d, yyyy");
-
-  // Binary boolean — drives CSS class-based animations (exact copy of SearchCard pattern)
+  // Binary boolean — drives CSS class-based animations
   const [isSticky, setIsSticky] = useState(false);
   // Continuous 0→1 — drives smooth container max-width squeeze
   const [progress, setProgress] = useState(0);
@@ -71,13 +68,15 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
   const padX = lerp(48, 32, progress);     // px-12 → px-8
   const padY = lerp(16, 8, progress);      // py-4  → py-2
 
+  const fromStopIdParam = searchParams.get("fromStopId") || "";
+  const toStopIdParam = searchParams.get("toStopId") || "";
 
   const fromStopIdParam = searchParams.get("fromStopId") || "";
   const toStopIdParam = searchParams.get("toStopId") || "";
 
   return (
     <>
-      {/* ── SCROLLS AWAY: background + headline ── */}
+      {/* ── SCROLLS AWAY: original hero spacing & background ── */}
       <div
         ref={heroRef}
         className="relative w-full"
@@ -93,39 +92,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
           }}
         />
 
-        <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[60px] md:pt-[140px] px-4 md:px-12 pb-0 md:pb-6">
-          <h1 className="hidden md:block text-3xl md:text-4xl lg:text-5xl font-display font-bold text-[#0B3150] mb-4 drop-shadow-sm tracking-tight">
-            {origin} to{" "}
-            <span className="text-[#FF7F3F] relative inline-block">
-              {destination}
-              <svg
-                className="absolute -bottom-2 left-0 w-full text-[#FF7F3F]"
-                viewBox="0 0 100 20"
-                preserveAspectRatio="none"
-                style={{ height: "14px" }}
-              >
-                <path d="M2,7 Q45,22 97,5" stroke="currentColor" strokeWidth="3.5" fill="transparent" strokeLinecap="round" />
-                <path d="M4,9 Q55,18 95,4" stroke="currentColor" strokeWidth="2" fill="transparent" strokeLinecap="round" opacity="0.7" />
-              </svg>
-            </span>
-          </h1>
-          <div className="hidden md:block text-[#475569] text-base md:text-lg font-medium mb-6 max-w-3xl leading-relaxed">
-            Explore available buses from {origin} to {destination} on {formattedDate}. Compare operators, prices, and amenities to find the schedule that works best for you.
-          </div>
-
-          {/* Breadcrumb Navigation */}
-          <div className="hidden md:flex items-center gap-3 text-sm md:text-base font-medium text-[#475569]">
-            <Link href="/" className="hover:text-[#FF7F3F] transition-colors flex items-center gap-2">
-              Home
-            </Link>
-            <span className="text-[#475569]/40">›</span>
-            <Link href="/routes" className="hover:text-[#FF7F3F] transition-colors flex items-center gap-2">
-              Routes
-            </Link>
-            <span className="text-[#475569]/40">›</span>
-            <span className="text-[#0B3150] opacity-80 capitalize">{origin} to {destination}</span>
-          </div>
-        </div>
+        <div className="relative z-20 text-left w-full max-w-[1600px] mx-auto pt-[32px] md:pt-[64px] px-4 md:px-12 pb-0 md:pb-2" />
 
         {/* Sentinel — when it leaves viewport, isSticky flips true */}
         <div ref={sentinelRef} className="absolute bottom-0 left-0 w-full h-[1px] pointer-events-none" />
@@ -159,7 +126,6 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
             "--pad-x": `${padX.toFixed(0)}px`,
           } as React.CSSProperties}
         >
-
           {/* ── Back Button (Desktop only, visible when sticky) ── */}
           <div
             className={`hidden md:flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-right overflow-hidden ${
@@ -177,7 +143,7 @@ export default function RouteDetailHero({ origin, destination }: RouteDetailHero
             </button>
           </div>
 
-          {/* ── Search card wrapper — EXACT copy of SearchCard sticky bar card styling ── */}
+          {/* ── Search card wrapper ── */}
           <div
             className={`bg-white/60 backdrop-blur-md rounded-2xl border p-1.5 md:pr-4 md:pl-3 md:py-1.5 flex flex-row items-center gap-2 pb-1 md:pb-1.5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] w-full transform origin-top border-b-[3px] ${isSticky
               ? "scale-[0.96] shadow-[0_12px_32px_rgba(217,67,40,0.15)] bg-white/95 border-[#D94328]/30 border-b-[#D94328]/80"

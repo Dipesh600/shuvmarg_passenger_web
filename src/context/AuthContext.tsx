@@ -38,6 +38,7 @@ import {
   verifyPassengerAuthOTP,
 } from "@/lib/auth";
 import { clearLegacyPersistentAccessToken } from "@/lib/access-token-store";
+import { useToast } from "@/context/ToastContext";
 
 // ── Payload type (mirrors what backend puts in the JWT) ───────────────────────
 
@@ -103,6 +104,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { showToast } = useToast();
 
   // ── Silent session restoration on mount ────────────────────────────────────
   useEffect(() => {
@@ -149,49 +151,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.success && data.accessToken) {
           const decoded = decodeJwtPayload(data.accessToken);
           setUser(decoded);
+          showToast(data.message || "Logged in successfully!", "success");
           return { success: true, message: data.message };
         }
 
+        const msg = data.message || "Login failed. Please check your credentials.";
+        showToast(msg, "error");
         return {
           success: false,
-          message: data.message || "Login failed.",
+          message: msg,
         };
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Login failed. Please try again.";
+        showToast(message, "error");
         return { success: false, message };
       }
     },
-    []
+    [showToast]
   );
 
   const logout = useCallback(async () => {
     await authLogout();
     setUser(null);
-  }, []);
+    showToast("You have been logged out successfully.", "info");
+  }, [showToast]);
 
   const authenticatePassengerWithOtp = useCallback(
     async (phone: string, otp: string) => {
-      const result = await verifyPassengerAuthOTP(phone, otp);
-      const decoded = decodeJwtPayload(result.accessToken);
+      try {
+        const result = await verifyPassengerAuthOTP(phone, otp);
+        const decoded = decodeJwtPayload(result.accessToken);
 
-      if (!decoded) {
-        clearTokens();
+        if (!decoded) {
+          clearTokens();
+          const errMsg = "The login session could not be started. Please try again.";
+          showToast(errMsg, "error");
+          return {
+            success: false,
+            message: errMsg,
+            passwordSetupRequired: false,
+          };
+        }
+
+        setUser(decoded);
+        showToast(result.message || "Phone verified! You are now logged in.", "success");
+        return {
+          success: true,
+          message: result.message,
+          passwordSetupRequired: result.passwordSetupRequired,
+        };
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "OTP verification failed. Please try again.";
+        showToast(message, "error");
         return {
           success: false,
-          message: "The login session could not be started. Please try again.",
+          message,
           passwordSetupRequired: false,
         };
       }
-
-      setUser(decoded);
-      return {
-        success: true,
-        message: result.message,
-        passwordSetupRequired: result.passwordSetupRequired,
-      };
     },
-    []
+    [showToast]
   );
 
   /**

@@ -82,7 +82,11 @@ export function BoardingPointsTab({
           </p>
         </div>
 
+<<<<<<< HEAD
         <div className="flex-1 min-h-0 overflow-y-auto pb-24 pr-1 md:pb-2">
+=======
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pb-24 pr-1 md:pb-2">
+>>>>>>> dev
           <div className="grid items-start gap-4 md:grid-cols-2 md:gap-5">
             <section aria-labelledby="pickup-heading" className="overflow-hidden rounded-[22px] bg-white/70 shadow-[0_10px_36px_rgba(42,28,18,0.07)]">
               <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#E8E0D4] bg-[#FAF7F2]/95 px-4 py-4 backdrop-blur-md md:px-5">
@@ -96,7 +100,11 @@ export function BoardingPointsTab({
                   </p>
                 </div>
               </div>
+<<<<<<< HEAD
               <div className="max-h-[46vh] overflow-y-auto overscroll-contain">
+=======
+              <div className="max-h-[46vh] overflow-y-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overscroll-contain">
+>>>>>>> dev
                 {pickupIsParentSelection ? (
                   <BoardingPointGroupList groups={boardingGroups} selectedPoint={boardingPoint}
                     onSelect={setBoardingPoint} emptyMessage="No pickup location is available for this trip."
@@ -121,7 +129,11 @@ export function BoardingPointsTab({
                   </p>
                 </div>
               </div>
+<<<<<<< HEAD
               <div className="max-h-[46vh] overflow-y-auto overscroll-contain">
+=======
+              <div className="max-h-[46vh] overflow-y-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overscroll-contain">
+>>>>>>> dev
                 {dropIsParentSelection ? (
                   <BoardingPointGroupList groups={droppingGroups} selectedPoint={droppingPoint}
                     onSelect={setDroppingPoint} emptyMessage="No drop location is available for this trip."
