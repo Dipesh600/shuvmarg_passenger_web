@@ -31,7 +31,7 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
   const [selectedSeats, setSelectedSeats] = useState<{id: string, label: string, price: number}[]>([]);
   const [activeTab, setActiveTab] = useState<'seats' | 'points' | 'passenger' | 'checkout'>('seats');
 
-  const { seatConfig, bookedSeatIds, isLoading, error, refetch } = useTripSeats(trip._id);
+  const { seatConfig, bookedSeatIds, seatFares, baseFare, isLoading, error, refetch } = useTripSeats(trip._id);
   const [isPreparing, setIsPreparing] = useState(false);
   const [showOtpGate, setShowOtpGate] = useState(false);
   const [passwordSetupRecommended, setPasswordSetupRecommended] = useState(false);
@@ -570,6 +570,8 @@ export function SeatSelectionDrawer({ isOpen, onClose, trip }: SeatSelectionDraw
               seatConfig={seatConfig}
               selectedSeats={selectedSeats}
               bookedSeatIds={bookedSeatIds}
+              seatFares={seatFares}
+              baseFare={baseFare}
               handleToggleSeat={handleToggleSeat}
               boardingPoints={boardingPoints}
               droppingPoints={droppingPoints}

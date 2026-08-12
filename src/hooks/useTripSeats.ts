@@ -5,12 +5,15 @@ import { request } from "@/lib/api";
 export interface TripSeatsData {
   seatConfig: SeatConfig;
   bookedSeatIds: string[];
+  seatFares: Record<string, number>;
+  baseFare: number | null;
 }
 
 interface RawSeatEntry {
   seatNo: string;
   booked: boolean;
   blockedFor?: string;
+  fare?: number | null;
 }
 
 interface GetSeatsResponse {
@@ -21,6 +24,7 @@ interface GetSeatsResponse {
     seatb?: RawSeatEntry[];
     seatc?: RawSeatEntry[];
     seatConfig?: SeatConfig | null;
+    baseFare?: number | null;
   };
 }
 
@@ -38,6 +42,16 @@ function extractBookedSeatIds(data: GetSeatsResponse["data"]): string[] {
   return allSeats
     .filter((s) => s.booked || (s.blockedFor && s.blockedFor !== "none"))
     .map((s) => s.seatNo.trim().toLowerCase());
+}
+
+function extractSeatFares(data: GetSeatsResponse["data"]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const seat of [...(data.seata ?? []), ...(data.seatb ?? []), ...(data.seatc ?? [])]) {
+    if (typeof seat.fare === "number" && Number.isFinite(seat.fare)) {
+      result[seat.seatNo.trim().toLowerCase()] = seat.fare;
+    }
+  }
+  return result;
 }
 
 export function useTripSeats(tripId: string) {
@@ -86,13 +100,14 @@ export function useTripSeats(tripId: string) {
 
       const seatConfig = response.data?.seatConfig ?? null;
       const bookedSeatIds = extractBookedSeatIds(response.data ?? {});
+      const seatFares = extractSeatFares(response.data ?? {});
 
       if (!seatConfig) {
         // Trip exists but has no seat template — surface a clear message
         setError("Seat layout is not configured for this trip.");
         setData(null);
       } else {
-        setData({ seatConfig, bookedSeatIds });
+        setData({ seatConfig, bookedSeatIds, seatFares, baseFare: response.data?.baseFare ?? null });
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
@@ -119,6 +134,8 @@ export function useTripSeats(tripId: string) {
   return {
     seatConfig: data?.seatConfig as SeatConfig | undefined,
     bookedSeatIds: data?.bookedSeatIds || [],
+    seatFares: data?.seatFares || {},
+    baseFare: data?.baseFare ?? null,
     isLoading,
     error,
     refetch: loadSeats,

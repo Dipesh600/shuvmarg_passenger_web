@@ -8,9 +8,10 @@ interface SeatIconProps {
   price?: number;
   className?: string;
   onClick?: () => void;
+  berth?: boolean;
 }
 
-export function SeatIcon({ state, label, price, className, onClick }: SeatIconProps) {
+export function SeatIcon({ state, label, price, className, onClick, berth = false }: SeatIconProps) {
   const svgColors = {
     available: { stroke: "#cbd5e1", fill: "white", text: "#475569" },
     selected: { stroke: "#C93522", fill: "#D94328", text: "white" },
@@ -29,7 +30,9 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
         className
       ].filter(Boolean).join(" ")}
     >
-      <div className="relative w-[40px] h-[45px]">
+      <div className={`relative w-[40px] ${berth ? "h-[108px] rounded-xl border-2" : "h-[45px]"}`} style={berth ? { background: currentColors.fill, borderColor: currentColors.stroke } : undefined}>
+        {berth && <div className="absolute left-1 right-1 top-1 h-5 rounded-md border" style={{ borderColor: currentColors.stroke }} />}
+        {!berth && (
         <svg
           viewBox="0 0 32 40"
           fill="none"
@@ -70,6 +73,7 @@ export function SeatIcon({ state, label, price, className, onClick }: SeatIconPr
             className="transition-colors"
           />
         </svg>
+        )}
 
         {/* Seat Number Label */}
         {label && (

@@ -16,6 +16,8 @@ interface SeatMapTabProps {
   seatConfig: any;
   selectedSeats: any[];
   bookedSeatIds: string[];
+  seatFares: Record<string, number>;
+  baseFare: number | null;
   handleToggleSeat: (seatId: string, label: string, price: number) => void;
   boardingPoints: BoardingPoint[];
   droppingPoints: BoardingPoint[];
@@ -29,6 +31,8 @@ export default function SeatMapTab({
   seatConfig,
   selectedSeats,
   bookedSeatIds,
+  seatFares,
+  baseFare,
   handleToggleSeat,
   boardingPoints,
   droppingPoints,
@@ -134,7 +138,8 @@ export default function SeatMapTab({
             selectedSeatIds={selectedSeats.map((s) => s.id)}
             bookedSeatIds={bookedSeatIds}
             onToggleSeat={handleToggleSeat}
-            basePrice={trip?.tripFare}
+            basePrice={baseFare ?? trip?.tripFare}
+            seatFares={seatFares}
           />
         ) : null}
       </div>

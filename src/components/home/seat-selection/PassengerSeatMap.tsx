@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { SeatIcon, SeatState } from "./SeatIcon";
 
 // Types matching backend seat config
@@ -10,6 +10,9 @@ export interface SeatCell {
   seatType: SeatType;
   seatLabel: string | null;
   seatId: string | null;
+  isActive?: boolean;
+  rowSpan?: number;
+  colSpan?: number;
 }
 
 export interface SeatRow {
@@ -34,6 +37,7 @@ interface PassengerSeatMapProps {
   onToggleSeat: (seatId: string, seatLabel: string, price: number) => void;
   className?: string;
   basePrice?: number;
+  seatFares?: Record<string, number>;
 }
 
 export function PassengerSeatMap({
@@ -43,10 +47,12 @@ export function PassengerSeatMap({
   onToggleSeat,
   className,
   basePrice = 1200,
+  seatFares = {},
 }: PassengerSeatMapProps) {
+  const [selectedFloor, setSelectedFloor] = useState(0);
   if (!config?.floors?.length) return null;
-
-  const floor = config.floors[0];
+  const visibleFloorIndex = Math.min(selectedFloor, config.floors.length - 1);
+  const floor = config.floors[visibleFloorIndex];
   const unavailableSeats = new Set(
     bookedSeatIds.map((seat) => seat.trim().toLowerCase())
   );
@@ -72,16 +78,45 @@ export function PassengerSeatMap({
         <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border border-neutral-200 rounded px-2 py-0.5">Front</div>
       </div>
 
-      <div className="flex flex-col gap-1.5 mt-2">
-        {floor.rows.map((row, ri) => (
-          <div key={ri} className="flex items-center justify-center gap-2">
-            {row.cells.map((cell, ci) => {
+      {config.floors.length > 1 && (
+        <div className="mb-5 grid w-full grid-cols-2 gap-2 rounded-xl bg-white/70 p-1" role="tablist" aria-label="Bus deck">
+          {config.floors.map((item, index) => (
+            <button
+              key={item.floorLevel ?? index}
+              type="button"
+              role="tab"
+              aria-selected={visibleFloorIndex === index}
+              onClick={() => setSelectedFloor(index)}
+              className={`rounded-lg px-3 py-2 text-xs font-bold transition ${visibleFloorIndex === index ? "bg-[#D94328] text-white" : "text-neutral-600 hover:bg-white"}`}
+            >
+              {item.floorName || (index === 0 ? "Lower deck" : "Upper deck")}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-2 grid auto-rows-[65px] gap-2" style={{ gridTemplateColumns: `repeat(${Math.max(...floor.rows.map((row) => row.cells.length))}, 40px)` }}>
+        {(() => {
+          const covered = new Set<string>();
+          for (const [ri, row] of floor.rows.entries()) for (const [ci, cell] of row.cells.entries()) {
+            if (cell.cellType !== "SEAT") continue;
+            for (let r = ri; r < ri + (cell.rowSpan || 1); r += 1) for (let c = ci; c < ci + (cell.colSpan || 1); c += 1) {
+              if (r !== ri || c !== ci) covered.add(`${r}:${c}`);
+            }
+          }
+          return floor.rows.flatMap((row, ri) => row.cells.map((cell, ci) => {
+              if (covered.has(`${ri}:${ci}`)) return null;
+              const placement = { gridRow: `${ri + 1} / span ${cell.rowSpan || 1}`, gridColumn: `${ci + 1} / span ${cell.colSpan || 1}` };
               if (cell.cellType === "AISLE") {
-                return <div key={`${ri}-${ci}`} className="w-6" />;
+                return <div key={`${ri}-${ci}`} style={placement} />;
               }
 
               if (cell.cellType === "EMPTY" || cell.cellType === "DOOR" || cell.cellType === "DRIVER") {
-                return <div key={`${ri}-${ci}`} className="w-8 h-8" />;
+                return <div key={`${ri}-${ci}`} style={placement} />;
+              }
+
+              if (cell.cellType === "SEAT" && cell.isActive === false) {
+                return <div key={`${ri}-${ci}`} style={placement} />;
               }
 
               // It's a SEAT
@@ -92,26 +127,23 @@ export function PassengerSeatMap({
                 else if (selectedSeatIds.includes(cell.seatId)) state = "selected";
               }
 
-              // Mock logic for prices (later fetched from API or backend)
-              // Lower rows or window seats could have different prices, for now use basePrice
-              const price = basePrice;
+              const fareKey = (cell.seatLabel || cell.seatId || "").trim().toLowerCase();
+              const price = seatFares[fareKey] ?? basePrice;
 
-              return (
-                <SeatIcon
+              return <div key={`${ri}-${ci}`} style={placement} className="flex h-full items-center justify-center"><SeatIcon
                   key={`${ri}-${ci}`}
                   state={state}
                   label={cell.seatLabel || ""}
                   price={price}
+                  berth={(cell.rowSpan || 1) > 1}
                   onClick={() => {
                     if (cell.seatId) {
                       onToggleSeat(cell.seatId, cell.seatLabel || "", price);
                     }
                   }}
-                />
-              );
-            })}
-          </div>
-        ))}
+                /></div>;
+            }));
+        })()}
       </div>
 
       <div className="w-full flex justify-center mt-8 pt-4 border-t border-dashed border-neutral-200">
