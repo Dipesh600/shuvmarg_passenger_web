@@ -18,9 +18,11 @@ test("access tokens are memory-only and legacy persistence is removed", async ()
 });
 
 test("authenticated requests coordinate one refresh and retry only once", async () => {
-  const [api, auth] = await Promise.all([
+  const [api, auth, store, context] = await Promise.all([
     read("../src/lib/api.ts"),
     read("../src/lib/auth.ts"),
+    read("../src/lib/access-token-store.ts"),
+    read("../src/context/AuthContext.tsx"),
   ]);
 
   assert.match(api, /refreshInFlight/);
@@ -28,6 +30,10 @@ test("authenticated requests coordinate one refresh and retry only once", async 
   assert.match(api, /retryAuth: false/);
   assert.match(auth, /refreshAccessTokenOnce/);
   assert.doesNotMatch(auth, /request<RefreshResponse>\("\/api\/refresh"/);
+  assert.match(api, /TERMINAL_AUTH_CODES/);
+  assert.match(api, /terminalAuthFailure/);
+  assert.match(store, /subscribeToAccessToken/);
+  assert.match(context, /subscribeToAccessToken\(syncUserFromToken\)/);
 });
 
 test("seat availability cancels superseded trip requests", async () => {
