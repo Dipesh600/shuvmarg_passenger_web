@@ -69,6 +69,12 @@ interface RequestOptions {
 }
 
 let refreshInFlight: Promise<string | null> | null = null;
+const TERMINAL_AUTH_CODES = new Set([
+  "INSUFFICIENT_ROLE",
+  "ROLE_REVOKED",
+  "SESSION_ROLE_MISMATCH",
+  "SESSION_INVALIDATED",
+]);
 
 export async function refreshAccessTokenOnce(): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
@@ -164,12 +170,18 @@ export async function request<T = unknown>(
         });
       }
     }
+    const errorCode = data.errorCode as string | undefined;
+    const terminalAuthFailure = !skipAuth && (
+      response.status === 401 ||
+      (response.status === 403 && !!errorCode && TERMINAL_AUTH_CODES.has(errorCode))
+    );
+    if (terminalAuthFailure) clearAccessToken();
     throw new ApiRequestError({
       message:
         (data.message as string) ||
         (data.error as string) ||
         "Something went wrong. Please try again.",
-      errorCode: data.errorCode as string | undefined,
+      errorCode,
       retryAfterMinutes: data.retryAfterMinutes as number | undefined,
       retryAfterSeconds: data.retryAfterSeconds as number | undefined,
       statusCode: response.status,

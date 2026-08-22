@@ -37,7 +37,10 @@ import {
   clearTokens,
   verifyPassengerAuthOTP,
 } from "@/lib/auth";
-import { clearLegacyPersistentAccessToken } from "@/lib/access-token-store";
+import {
+  clearLegacyPersistentAccessToken,
+  subscribeToAccessToken,
+} from "@/lib/access-token-store";
 import { useToast } from "@/context/ToastContext";
 
 // ── Payload type (mirrors what backend puts in the JWT) ───────────────────────
@@ -108,6 +111,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── Silent session restoration on mount ────────────────────────────────────
   useEffect(() => {
+    const syncUserFromToken = () => {
+      const token = getAccessToken();
+      const decoded = token ? decodeJwtPayload(token) : null;
+      setUser(decoded && !isTokenExpired(decoded) ? decoded : null);
+    };
+    const unsubscribe = subscribeToAccessToken(syncUserFromToken);
+
     async function restoreSession() {
       clearLegacyPersistentAccessToken();
       const token = getAccessToken();
@@ -136,6 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     restoreSession();
+    return unsubscribe;
   }, []);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
