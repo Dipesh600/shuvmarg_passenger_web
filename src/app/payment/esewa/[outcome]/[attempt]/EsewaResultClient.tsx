@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ApiRequestError } from "@/lib/api";
+import { esewaResultHeading, isPendingEsewaResult } from "@/lib/esewa-result";
 import {
   ConfirmedBooking,
   finalizeEsewaCheckout,
@@ -14,11 +15,12 @@ interface Props {
   outcome: string;
 }
 
-export default function EsewaResultClient({ attempt, outcome }: Props) {
+export default function EsewaResultClient({ attempt }: Props) {
   const searchParams = useSearchParams();
   const started = useRef(false);
   const [booking, setBooking] = useState<ConfirmedBooking | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | undefined>();
 
   useEffect(() => {
     if (started.current) return;
@@ -35,7 +37,7 @@ export default function EsewaResultClient({ attempt, outcome }: Props) {
       } catch (err) {
         if (
           err instanceof ApiRequestError &&
-          err.errorCode === "ESEWA_PAYMENT_CONFIRMATION_IN_PROGRESS" &&
+          isPendingEsewaResult(err.errorCode) &&
           retries < 10
         ) {
           await new Promise((resolve) => window.setTimeout(resolve, 2000));
@@ -46,6 +48,7 @@ export default function EsewaResultClient({ attempt, outcome }: Props) {
             ? err.message
             : "We could not confirm your payment. Please contact support before paying again.";
         setError(message);
+        setErrorCode(err instanceof ApiRequestError ? err.errorCode : undefined);
       }
     }
     void finalize();
@@ -94,13 +97,14 @@ export default function EsewaResultClient({ attempt, outcome }: Props) {
               !
             </div>
             <h1 className="text-2xl font-black text-neutral-900">
-              {outcome === "failure"
-                ? "Payment was not completed"
-                : "Payment needs attention"}
+              {esewaResultHeading(errorCode)}
             </h1>
             <p className="mt-3 text-sm leading-6 text-neutral-600">{error}</p>
             <p className="mt-3 text-xs text-neutral-500">
               Reference: {attempt}
+            </p>
+            <p className="mt-3 text-sm text-neutral-600">
+              Check your bookings or contact support with this reference before paying again.
             </p>
             <Link
               href="/"
