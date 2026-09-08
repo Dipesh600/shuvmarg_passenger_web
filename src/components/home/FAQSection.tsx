@@ -83,7 +83,7 @@ const faqData: FAQCategory[] = [
       },
       {
         question: "When will I get my refund after cancellation?",
-        answer: "Refunds are typically processed within 3-5 business days to your original payment method. Wallet payments (like eSewa or Khalti) are often refunded faster.",
+        answer: "Eligible refunds can be credited instantly to Shuvmarg Money or returned to the original payment source after provider settlement. The available options are shown for your cancellation.",
       },
     ],
   },

@@ -200,18 +200,12 @@ export function BusDetailsScrollspy({
                 </h3>
               </div>
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between py-2 border-b border-[#D94328]/10">
-                  <span className="text-[13px] text-neutral-600">Before 24 hours of departure</span>
-                  <span className="text-[13px] font-bold text-neutral-900">90% Refund</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-[#D94328]/10">
-                  <span className="text-[13px] text-neutral-600">12 - 24 hours before departure</span>
-                  <span className="text-[13px] font-bold text-neutral-900">50% Refund</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-[13px] text-neutral-600">Less than 12 hours</span>
-                  <span className="text-[13px] font-bold text-red-600">No Refund</span>
-                </div>
+                <p className="text-[13px] leading-5 text-neutral-700">
+                  The refund estimate uses the policy saved with your booking and is
+                  shown before you confirm cancellation. Cancellation applies to the
+                  complete booking. Eligible refunds can go to Shuvmarg Money or the
+                  original payment source.
+                </p>
               </div>
             </div>
           </section>

@@ -1,4 +1,5 @@
 import { ApiRequestError, request } from "@/lib/api";
+import { readConfirmedBooking } from "./esewa-result";
 
 export interface PreparedBooking {
   tempBookingId: string;
@@ -111,11 +112,19 @@ export async function finalizeEsewaCheckout(
   responseData?: string | null
 ): Promise<ConfirmedBooking> {
   const response = await request<{
-    success: true;
-    data: ConfirmedBooking;
+    success: boolean;
+    data?: ConfirmedBooking;
+    message?: string;
+    errorCode?: string;
   }>("/api/ticket/esewa/finalize", {
     method: "POST",
     body: { transactionUuid, responseData: responseData || undefined },
   });
-  return response.data;
+  const booking = readConfirmedBooking(response);
+  if (!booking) throw new ApiRequestError({
+    message: response.message || "Payment confirmation is unavailable. Keep this reference and check again before paying.",
+    errorCode: response.errorCode || "PAYMENT_CONFIRMATION_INVALID",
+    statusCode: response.errorCode === "PAYMENT_VERIFICATION_PENDING" ? 202 : 502,
+  });
+  return booking;
 }
